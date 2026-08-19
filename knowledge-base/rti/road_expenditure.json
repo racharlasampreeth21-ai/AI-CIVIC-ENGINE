@@ -1,0 +1,27 @@
+{
+  "id": "rti-road-01",
+  "title": "Filing RTI for Local Road Construction and Fund Allocation",
+  "authority": "Central Information Commission / Right to Information Act 2005",
+  "source_url": "https://rti.gov.in/",
+  "category": "RTI Guidance",
+  "jurisdiction": "All India",
+  "last_updated": "2024-01",
+  "target_departments": [
+    "Public Works Department (PWD)",
+    "Municipal Corporation / Urban Local Body",
+    "Rural Development Department / Gram Panchayat"
+  ],
+  "required_fees_inr": 10,
+  "guidelines": [
+    "Under Section 6(1) of the RTI Act 2005, a citizen can request details about expenditures, copies of work orders, measurement books (MB), and completion certificates.",
+    "Be specific about the road name, ward number, locality, and the exact years or date range.",
+    "Do not ask for reasons or opinions; ask for records, documents, contracts, or file notes.",
+    "Address the application to the Public Information Officer (PIO) of the respective public authority (e.g. Executive Engineer, PWD or Ward Assistant Commissioner)."
+  ],
+  "sample_questions": [
+    "What is the total budget allocated and sanctioned for the construction/repair of [Road Name/Locality] during the period [Start Year] to [End Year]?",
+    "Please provide a certified copy of the Work Order, Tender Document, and agreement signed with the contractor for the aforementioned work.",
+    "Please provide the copy of the completion certificate and measurement book entries for this work.",
+    "If the road has developed potholes/cracks, please provide the details of the liability period of the contractor and what action has been taken by the department."
+  ]
+}

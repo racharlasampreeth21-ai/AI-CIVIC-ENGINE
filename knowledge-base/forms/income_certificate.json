@@ -1,0 +1,88 @@
+{
+  "id": "form-income-01",
+  "title": "Application for Income Certificate",
+  "authority": "Department of Revenue, State Government",
+  "source_url": "https://edistrict.delhigovt.nic.in/",
+  "category": "Revenue Services",
+  "jurisdiction": "State Level",
+  "last_updated": "2024-02",
+  "fields": [
+    {
+      "name": "fullName",
+      "label": "Full Name of Applicant",
+      "type": "string",
+      "required": true,
+      "prompt": "What is your full name as it appears on your Aadhaar card?",
+      "validation": {
+        "pattern": "^[a-zA-Z\\s]{3,50}$",
+        "errorMessage": "Name should contain only letters and be between 3 and 50 characters long."
+      }
+    },
+    {
+      "name": "fatherHusbandName",
+      "label": "Father's or Husband's Name",
+      "type": "string",
+      "required": true,
+      "prompt": "What is the name of your Father or Husband?",
+      "validation": {
+        "pattern": "^[a-zA-Z\\s]{3,50}$",
+        "errorMessage": "Father's/Husband's name should contain only letters and be between 3 and 50 characters."
+      }
+    },
+    {
+      "name": "dob",
+      "label": "Date of Birth",
+      "type": "date",
+      "required": true,
+      "prompt": "What is your date of birth? (Please specify in DD/MM/YYYY or YYYY-MM-DD format)",
+      "validation": {
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+        "errorMessage": "Please provide a valid date in YYYY-MM-DD format."
+      }
+    },
+    {
+      "name": "address",
+      "label": "Permanent Address",
+      "type": "string",
+      "required": true,
+      "prompt": "What is your complete residential address (including pincode)?",
+      "validation": {
+        "pattern": "^.{10,200}$",
+        "errorMessage": "Address should be detailed (at least 10 characters long)."
+      }
+    },
+    {
+      "name": "annualIncome",
+      "label": "Annual Family Income (INR)",
+      "type": "number",
+      "required": true,
+      "prompt": "What is the total annual income of your family from all sources combined?",
+      "validation": {
+        "pattern": "^[0-9]{3,8}$",
+        "errorMessage": "Please enter a valid numeric income (e.g. 150000)."
+      }
+    },
+    {
+      "name": "incomeSource",
+      "label": "Primary Source of Income",
+      "type": "select",
+      "required": true,
+      "options": ["Salary", "Business / Self-Employed", "Agriculture", "Labor / Wage Work", "Pension", "Other"],
+      "prompt": "What is the primary source of this income? (Salary, Business, Agriculture, Pension, Wage Work, or Other)",
+      "validation": {
+        "errorMessage": "Please select a valid option."
+      }
+    },
+    {
+      "name": "purpose",
+      "label": "Purpose of Certificate",
+      "type": "string",
+      "required": true,
+      "prompt": "Why are you applying for this certificate? (e.g. Education, Scholarship, Welfare Scheme, Bank Loan)",
+      "validation": {
+        "pattern": "^.{3,100}$",
+        "errorMessage": "Purpose must be described in 3 to 100 characters."
+      }
+    }
+  ]
+}

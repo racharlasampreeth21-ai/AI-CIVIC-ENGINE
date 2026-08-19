@@ -1,0 +1,26 @@
+{
+  "id": "scheme-scholarship-01",
+  "title": "PM Yashasvi Post-Matric Scholarship Scheme",
+  "authority": "Ministry of Social Justice and Empowerment, Government of India",
+  "source_url": "https://scholarships.gov.in/",
+  "category": "Education Schemes",
+  "jurisdiction": "All India",
+  "last_updated": "2024-04",
+  "criteria": {
+    "category": ["OBC", "EBC", "DNT"],
+    "max_parental_income_inr": 250000,
+    "min_class": 11,
+    "max_class": 12,
+    "min_previous_marks_percentage": 50
+  },
+  "required_documents": [
+    "Aadhaar Card",
+    "Income Certificate (issued by Revenue Officer/Tahsildar)",
+    "Caste Certificate (OBC/EBC/DNT status)",
+    "Previous Class Marksheet (proving >= 50%)",
+    "Bank Account Details (linked to Aadhaar)",
+    "Current Year Fee Receipt / Admission Letter"
+  ],
+  "benefits": "Financial assistance of up to INR 125,000 per annum for school tuition fees and hostel maintenance allowances.",
+  "content": "The PM Young Achievers Scholarship Award Scheme for Vibrant India (YASASVI) is a scholarship program designed for students belonging to Other Backward Class (OBC), Economically Backward Class (EBC), and De-Notified, Nomadic & Semi-Nomadic Tribes (DNT). The annual income of their parents/guardians from all sources should not exceed INR 2.5 Lakhs. Students must be studying in designated schools in Class 11 or 12, and must have passed the previous class examination with at least 50% marks."
+}
