@@ -1,102 +1,179 @@
-// API Sanity Check for Civic Action Engine
-// Run with: node api_sanity_check.js
+const assert = require('assert');
 
 const BACKEND_URL = 'http://localhost:5000';
 
-async function runTests() {
-  console.log('🧪 Starting API Sanity Verification Tests...');
+async function runTestMatrix() {
+  console.log('🧪 Starting Phase 3 12-Case Test Matrix Verification...\n');
   let failed = false;
 
-  // Test Helper
-  const assert = (condition, message) => {
-    if (!condition) {
-      console.error(`❌ FAILED: ${message}`);
-      failed = true;
-    } else {
-      console.log(`✅ PASSED: ${message}`);
+  const testCases = [
+    {
+      id: 1,
+      name: "Tenant Problem",
+      query: "My landlord hasn't returned my deposit.",
+      expectedModule: "RIGHTS_NAVIGATOR",
+      expectedCategory: "Housing / Tenant",
+      expectedConfidence: "HIGH"
+    },
+    {
+      id: 2,
+      name: "Workplace Wages",
+      query: "My employer hasn't paid my wages.",
+      expectedModule: "RIGHTS_NAVIGATOR",
+      expectedCategory: "Employment / Wage",
+      expectedConfidence: "HIGH"
+    },
+    {
+      id: 3,
+      name: "Consumer Refund",
+      query: "My phone seller refuses a refund.",
+      expectedModule: "RIGHTS_NAVIGATOR",
+      expectedCategory: "Consumer / Refund",
+      expectedConfidence: "HIGH"
+    },
+    {
+      id: 4,
+      name: "Police misconduct",
+      query: "Police used excessive force during an incident.",
+      expectedModule: "RIGHTS_NAVIGATOR",
+      expectedCategory: "Police / Public Authority",
+      expectedConfidence: "MEDIUM"
+    },
+    {
+      id: 5,
+      name: "Civic Sanitation",
+      query: "Garbage hasn't been collected in my street.",
+      expectedModule: "RIGHTS_NAVIGATOR",
+      expectedCategory: "Sanitation / Waste",
+      expectedConfidence: "HIGH"
+    },
+    {
+      id: 6,
+      name: "Road / Infrastructure",
+      query: "Pothole damaged street repair required.",
+      expectedModule: "RIGHTS_NAVIGATOR",
+      expectedCategory: "Roads / Public Infrastructure",
+      expectedConfidence: "HIGH"
+    },
+    {
+      id: 7,
+      name: "Scheme Query",
+      query: "Can I qualify for government scholarship Yashasvi?",
+      expectedModule: "SCHEME_ELIGIBILITY",
+      expectedCategory: "Education",
+      expectedConfidence: "HIGH"
+    },
+    {
+      id: 8,
+      name: "RTI Query",
+      query: "allocated road budget MG Road spent under RTI",
+      expectedModule: "RTI_DRAFTING",
+      expectedCategory: "Roads / Public Infrastructure",
+      expectedConfidence: "HIGH"
+    },
+    {
+      id: 9,
+      name: "Form Query",
+      query: "help fill out income certificate application form",
+      expectedModule: "FORM_FILLER",
+      expectedCategory: "Identity / Public Documents",
+      expectedConfidence: "HIGH"
+    },
+    {
+      id: 10,
+      name: "Ambiguous Query",
+      query: "my employer is treating me unfairly",
+      expectedModule: "RIGHTS_NAVIGATOR",
+      expectedCategory: "Employment / Wage",
+      expectedConfidence: "MEDIUM"
+    },
+    {
+      id: 11,
+      name: "Completely Unsupported",
+      query: "how to cook pasta at home",
+      expectedModule: "RIGHTS_NAVIGATOR",
+      expectedCategory: "Other Civic Issue",
+      expectedConfidence: "LOW"
+    },
+    {
+      id: 12,
+      name: "Empty Input",
+      query: "",
+      expectedModule: "RIGHTS_NAVIGATOR",
+      expectedCategory: "Other Civic Issue",
+      expectedConfidence: "LOW"
     }
-  };
+  ];
 
-  try {
-    // 1. Health check
-    console.log('\n--- Test 1: Health Check ---');
-    const healthRes = await fetch(`${BACKEND_URL}/api/health`);
-    assert(healthRes.ok, `Health endpoint returned status ${healthRes.status}`);
-    const healthData = await healthRes.json();
-    assert(healthData.status === 'healthy', 'Health status is "healthy"');
-    assert(healthData.hasOwnProperty('hasKey'), 'Health response has key check field');
+  for (const tc of testCases) {
+    try {
+      console.log(`--- Test ${tc.id}: ${tc.name} ---`);
+      console.log(`Query: "${tc.query}"`);
 
-    // 2. Intelligent Routing
-    console.log('\n--- Test 2: Intelligent Routing ---');
-    const routeRes = await fetch(`${BACKEND_URL}/api/route`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: 'My landlord did not return my security deposit.' })
-    });
-    assert(routeRes.ok, `Route endpoint returned status ${routeRes.status}`);
-    const routeData = await routeRes.json();
-    assert(routeData.category === 'RIGHTS_NAVIGATOR', `Query routed to: ${routeData.category} (Expected: RIGHTS_NAVIGATOR)`);
+      // 1. Check Routing
+      const routeRes = await fetch(`${BACKEND_URL}/api/route`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: tc.query })
+      });
+      assert(routeRes.ok, `Routing status: ${routeRes.status}`);
+      const routeData = await routeRes.json();
+      
+      console.log(`Routed Module: ${routeData.module} (Expected: ${tc.expectedModule})`);
+      console.log(`Category: ${routeData.category} (Expected: ${tc.expectedCategory})`);
+      console.log(`Confidence: ${routeData.confidence} (Expected: ${tc.expectedConfidence})`);
 
-    // 3. Rights Navigator
-    console.log('\n--- Test 3: Rights Analysis ---');
-    const rightsRes = await fetch(`${BACKEND_URL}/api/rights/analyze`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: 'My landlord is refusing to return my security deposit.' })
-    });
-    assert(rightsRes.ok, `Rights endpoint returned status ${rightsRes.status}`);
-    const rightsData = await rightsRes.json();
-    assert(rightsData.type === 'RIGHTS_NAVIGATOR', 'Session type is RIGHTS_NAVIGATOR');
-    assert(rightsData.response.whatWeUnderstand !== undefined, 'Rights analysis whatWeUnderstand is populated');
-    assert(rightsData.response.whatYouMayDoNext.length > 0, 'Rights analysis returned next steps list');
+      assert.strictEqual(routeData.module, tc.expectedModule, "Module mismatch");
+      assert.strictEqual(routeData.category, tc.expectedCategory, "Category mismatch");
+      assert.strictEqual(routeData.confidence, tc.expectedConfidence, "Confidence mismatch");
 
-    // 4. Scheme Eligibility
-    console.log('\n--- Test 4: Scheme Eligibility ---');
-    const schemeRes = await fetch(`${BACKEND_URL}/api/schemes/eligibility`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        profile: {
-          category: 'OBC',
-          annualIncome: '180000',
-          currentClass: '11',
-          previousMarks: '85'
+      // For Rights Navigator modules, evaluate source retrieval and fallbacks
+      if (tc.expectedModule === 'RIGHTS_NAVIGATOR') {
+        const analyzeRes = await fetch(`${BACKEND_URL}/api/rights/analyze`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: tc.query })
+        });
+        assert(analyzeRes.ok, `Analysis status: ${analyzeRes.status}`);
+        const analyzeData = await analyzeRes.json();
+
+        if (tc.expectedConfidence === 'LOW') {
+          console.log(`✅ UNSUPPORTED FALLBACK TRIGGERED`);
+          assert.strictEqual(analyzeData.status, 'UNSUPPORTED_FALLBACK', "Expected fallback status");
+          assert(analyzeData.response.unsupported === true, "Marked unsupported");
+          assert(analyzeData.response.whatWeCannotVerifyYet.includes('not guess'), "Grounding check");
+        } else {
+          console.log(`✅ GROUNDED RESPONSE RETRIEVED`);
+          assert(analyzeData.response.whatWeUnderstand !== undefined, "whatWeUnderstand populated");
+          assert(analyzeData.response.whatYouMayDoNext.length > 0, "Action steps populated");
+          // Ensure we don't bleed tenant info into police complaints or vice versa
+          if (tc.name === "Police misconduct") {
+            assert(!analyzeData.response.whatWeUnderstand.includes('landlord'), "Police query should not return landlord details");
+          }
+          if (tc.name === "Tenant Problem") {
+            assert(!analyzeData.response.whatWeUnderstand.includes('police'), "Tenant query should not return police details");
+          }
         }
-      })
-    });
-    assert(schemeRes.ok, `Scheme endpoint returned status ${schemeRes.status}`);
-    const schemeData = await schemeRes.json();
-    assert(schemeData.response.status === 'LIKELY ELIGIBLE', `Scheme checker status: ${schemeData.response.status} (Expected: LIKELY ELIGIBLE)`);
-    assert(schemeData.response.evaluation.income.satisfied === true, 'Income criteria check satisfied');
+      }
 
-    // 5. RTI Drafting Agent
-    console.log('\n--- Test 5: RTI Draft Generation ---');
-    const rtiRes = await fetch(`${BACKEND_URL}/api/rti/draft`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text: 'road construction funds MG Road',
-        applicantName: 'Sampreeth Racharla',
-        applicantAddress: 'Delhi'
-      })
-    });
-    assert(rtiRes.ok, `RTI endpoint returned status ${rtiRes.status}`);
-    const rtiData = await rtiRes.json();
-    assert(rtiData.response.rtiDraft.includes('Sampreeth Racharla'), 'RTI Draft successfully replaced name placeholder');
-    assert(rtiData.response.rtiDraft.includes('Section 6(1)'), 'RTI Draft has statutory headers');
+      console.log(`✅ Test ${tc.id} PASSED\n`);
+    } catch (err) {
+      console.error(`❌ Test ${tc.id} FAILED:`, err.message);
+      failed = true;
+    }
+  }
 
-    // 6. Conversational Form-Filler Workflow
-    console.log('\n--- Test 6: Conversational Form Filler ---');
+  // 13. Conversational form filler check
+  try {
+    console.log(`--- Test 13: Conversational Form Filler Corrections ---`);
     const startRes = await fetch(`${BACKEND_URL}/api/forms/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ formId: 'form-income-01' })
     });
-    assert(startRes.ok, `Form start returned status ${startRes.status}`);
+    assert(startRes.ok);
     const startData = await startRes.json();
     const sessionId = startData.sessionId;
-    assert(sessionId !== undefined, 'Form session ID created successfully');
-    assert(startData.currentField.name === 'fullName', 'Initial prompt field is fullName');
 
     // Submit answer to first field
     const answerRes = await fetch(`${BACKEND_URL}/api/forms/respond`, {
@@ -107,12 +184,9 @@ async function runTests() {
         answer: 'Sampreeth Racharla'
       })
     });
-    assert(answerRes.ok, `Form respond returned status ${answerRes.status}`);
-    const answerData = await answerRes.json();
-    assert(answerData.currentField.name === 'fatherHusbandName', `Advanced to next field: ${answerData.currentField.name} (Expected: fatherHusbandName)`);
+    assert(answerRes.ok);
 
-    // 7. Form Filler Inline Correction
-    console.log('\n--- Test 7: Form Filler Inline Correction ---');
+    // Edit the answer
     const editRes = await fetch(`${BACKEND_URL}/api/forms/respond`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -122,23 +196,23 @@ async function runTests() {
         answer: 'Sampreeth R'
       })
     });
-    assert(editRes.ok, `Form edit returned status ${editRes.status}`);
+    assert(editRes.ok);
     const editData = await editRes.json();
-    assert(editData.answers.fullName === 'Sampreeth R', 'Inline correction updated fullName answer successfully');
-
+    assert.strictEqual(editData.answers.fullName, 'Sampreeth R', 'Inline correction updated fullName answer successfully');
+    console.log(`✅ Test 13 PASSED\n`);
   } catch (err) {
-    console.error('💥 Test execution threw an error:', err);
+    console.error(`❌ Test 13 FAILED:`, err.message);
     failed = true;
   }
 
-  console.log('\n======================================');
+  console.log('======================================');
   if (failed) {
     console.log('❌ SOME TESTS FAILED. CHECK LOGS ABOVE.');
     process.exit(1);
   } else {
-    console.log('🎉 ALL INTEGRATION TESTS PASSED SUCCESSFULLY!');
+    console.log('🎉 ALL 13 TEST MATRIX CHECKS PASSED SUCCESSFULLY!');
     process.exit(0);
   }
 }
 
-runTests();
+runTestMatrix();

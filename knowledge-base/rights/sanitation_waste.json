@@ -1,0 +1,14 @@
+{
+  "id": "rights-sanitation-01",
+  "category": "Sanitation / Waste",
+  "title": "Grievances for Municipal Solid Waste and Garbage Collection",
+  "authority": "Ministry of Environment, Forest and Climate Change (Solid Waste Management Rules 2016)",
+  "jurisdiction": "All India / Municipalities",
+  "summary": "Municipal bodies are legally responsible for timely door-to-door garbage collection and clearing local waste bins.",
+  "content": "According to the Solid Waste Management (SWM) Rules, 2016, municipal corporations and local urban bodies are legally obligated to organize door-to-door collection of segregated waste, establish daily waste collection services, and clear local street bins. Open dumping of municipal refuse or garbage accumulation is prohibited. If waste is not cleared, citizens have the right to submit a complaint. The primary action paths include registering grievances on the national Swachhata mobile app, submitting portal tickets to the municipal corporation e-district site, or sending written complaints to the local Ward Health/Sanitary Inspector.",
+  "sourceUrl": "https://cpcb.nic.in/solid-waste-management/",
+  "sourceType": "official",
+  "lastUpdated": "2023-10",
+  "keywords": ["garbage", "waste", "rubbish", "trash", "dump", "litter", "sanitation", "refuse", "cleanliness", "bin", "streets"],
+  "supportedActions": ["File complaint on Swachhata App", "Submit grievance to Municipal Corporation", "Escalate to Ward Sanitary Inspector"]
+}

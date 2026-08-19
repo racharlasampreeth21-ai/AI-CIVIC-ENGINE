@@ -21,6 +21,7 @@ function loadDocumentsFromFolder(folderName) {
         const data = fs.readFileSync(filePath, 'utf8');
         try {
           const doc = JSON.parse(data);
+          doc._folder = folderName;
           documents.push(doc);
         } catch (jsonErr) {
           console.error(`Error parsing JSON file ${filePath}:`, jsonErr);
@@ -52,7 +53,10 @@ const retrievalService = {
     
     let filteredDocs = docs;
     if (category) {
-      filteredDocs = docs.filter(doc => doc.category.toLowerCase().includes(category.toLowerCase()));
+      filteredDocs = docs.filter(doc => 
+        doc._folder === category || 
+        (doc.category && doc.category.toLowerCase().includes(category.toLowerCase()))
+      );
     }
 
     if (!query || query.trim() === '') {

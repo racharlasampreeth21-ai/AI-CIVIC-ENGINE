@@ -1,0 +1,14 @@
+{
+  "id": "rights-infrastructure-01",
+  "category": "Roads / Public Infrastructure",
+  "title": "Filing Complaints for Damaged Roads and Public Works",
+  "authority": "Municipal Public Works Department (PWD) Citizens Charter",
+  "jurisdiction": "State Level / Municipalities",
+  "summary": "PWD and municipal corporations are responsible for pothole repair, road maintenance, and restoring broken streets.",
+  "content": "Under municipal citizens' charters and PWD manuals, public authorities are responsible for keeping local streets safe and pothole-free. Major arterial roads must be resurfaced periodically, and potholes must be patched within 48 to 72 hours of registration. If public works are delayed or streets remain damaged, citizens are entitled to file grievances. Actionable paths include uploading photo complaints to the local municipality app, submitting written complaints to the PWD Executive Engineer, or registering central escalations on the CPGRAMS portal.",
+  "sourceUrl": "https://pwd.delhi.gov.in/",
+  "sourceType": "official",
+  "lastUpdated": "2024-01",
+  "keywords": ["road", "pothole", "damage", "pavement", "street", "maintenance", "broken", "infrastructure", "construction", "repair"],
+  "supportedActions": ["Upload road photo to Municipal App", "Submit complaint to PWD Executive Engineer", "File grievance on CPGRAMS"]
+}

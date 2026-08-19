@@ -10,10 +10,8 @@ const apiController = {
   routeRequest: async (req, res, next) => {
     try {
       const { text } = req.body;
-      if (!text) {
-        return res.status(400).json({ error: 'Text prompt is required' });
-      }
-      const routingResult = await geminiService.routeRequest(text);
+      const cleanText = (text || '').trim();
+      const routingResult = await geminiService.routeRequest(cleanText);
       res.json(routingResult);
     } catch (err) {
       next(err);
@@ -24,8 +22,41 @@ const apiController = {
   analyzeRights: async (req, res, next) => {
     try {
       const { text, sessionId } = req.body;
-      if (!text) {
+      if (text === undefined || text === null) {
         return res.status(400).json({ error: 'Text prompt is required' });
+      }
+
+      const cleanText = text.trim();
+
+      // Check category routing and source presence
+      const routeResult = await geminiService.routeRequest(cleanText);
+      const sources = cleanText === '' ? [] : retrievalService.search(cleanText, 'rights');
+
+      if (cleanText === '' || routeResult.confidence === 'LOW' || !sources || sources.length === 0) {
+        const fallbackSession = {
+          id: sessionId || generateId(),
+          type: 'RIGHTS_NAVIGATOR',
+          prompt: text,
+          status: 'UNSUPPORTED_FALLBACK',
+          category: routeResult.category || 'Other Civic Issue',
+          timestamp: new Date().toISOString(),
+          response: {
+            whatWeUnderstand: `Your message appears to concern: ${routeResult.category || 'Other Civic Issue'}.`,
+            unsupported: true,
+            whatWeCanHelpWith: "We can help you organize the situation, identify information you may need to document, and explain verified sources available in our knowledge base.",
+            whatWeCannotVerifyYet: "We do not currently have enough verified source material to provide a case-specific answer. We will not guess.",
+            whatWouldHelp: [
+              "What specifically happened?",
+              "Where did it occur?",
+              "When did it happen?",
+              "Which authority was involved?",
+              "Whether you have documents or evidence (tenancy agreement, salary slip, receipt, photos, video)."
+            ],
+            disclaimer: "Civic Action Engine safe fallback mode. No legal advice is implied."
+          }
+        };
+        dbHelper.saveSession(fallbackSession);
+        return res.json(fallbackSession);
       }
 
       const analysis = await geminiService.analyzeRights(text);

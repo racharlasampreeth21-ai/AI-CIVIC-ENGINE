@@ -1,0 +1,14 @@
+{
+  "id": "rights-police-01",
+  "category": "Police / Public Authority",
+  "title": "Filing Complaints Against Police Misconduct",
+  "authority": "Police Complaints Authority (PCA) Guidelines / Supreme Court Prakash Singh Reforms",
+  "jurisdiction": "All India / State Level",
+  "summary": "Citizens can report police misconduct (excessive force, threat, extortion, illegal detention) to the independent state Police Complaints Authority.",
+  "content": "According to the Supreme Court directives on police reforms (Prakash Singh case), states are mandated to set up independent Police Complaints Authorities (PCA) at state and district levels. A citizen can file a written complaint before the PCA against police officers for: (a) excessive use of physical force; (b) illegal arrest or detention; (c) extortion or threat/intimidation; (d) custodial death or grievous hurt. The complaint must contain the name/designation of the officer, Station name, Date & Time of occurrence, Description of abuse, and supporting proof (such as medical reports, photos, or video recordings). Complaints must be submitted directly to the PCA registrar office or uploaded via the state online grievance portal.",
+  "sourceUrl": "https://delhipolice.gov.in/police-complaints-authority",
+  "sourceType": "official",
+  "lastUpdated": "2024-02",
+  "keywords": ["police", "brutality", "force", "brutal", "assault", "detention", "extortion", "threat", "arrest", "beat", "intimidate"],
+  "supportedActions": ["Draft Written Complaint to PCA", "Document Physical Injuries", "File grievance on CPGRAMS"]
+}

@@ -22,41 +22,73 @@ const LEGAL_DISCLAIMER = "Disclaimer: This is an informational assessment genera
  */
 const mockService = {
   routeRequest: (text) => {
-    const input = text.toLowerCase();
-    if (input.includes('landlord') || input.includes('rent') || input.includes('deposit') || input.includes('tenant') || input.includes('salary') || input.includes('workplace') || input.includes('employer')) {
+    const input = text.toLowerCase().trim();
+    
+    let category = "Other Civic Issue";
+    let module = "RIGHTS_NAVIGATOR";
+    let confidence = "LOW";
+    let needsClarification = false;
+    let reason = "Classifying using taxonomy keywords.";
+
+    if (!input) {
       return {
-        category: 'RIGHTS_NAVIGATOR',
-        reason: 'Identified a tenant, housing, or workplace rights dispute.',
-        confidence: 'HIGH'
+        category: "Other Civic Issue",
+        module: "RIGHTS_NAVIGATOR",
+        confidence: "LOW",
+        needsClarification: false,
+        reason: "Empty input query."
       };
     }
-    if (input.includes('scholarship') || input.includes('scheme') || input.includes('yashasvi') || input.includes('eligible') || input.includes('pm-')) {
-      return {
-        category: 'SCHEME_ELIGIBILITY',
-        reason: 'Inquiry relates to government schemes or scholarship eligibility criteria.',
-        confidence: 'HIGH'
-      };
+
+    if (input.includes('landlord') || input.includes('rent') || input.includes('deposit') || input.includes('tenant')) {
+      category = "Housing / Tenant";
+      module = "RIGHTS_NAVIGATOR";
+      confidence = "HIGH";
+    } else if (input.includes('employer') || input.includes('salary') || input.includes('wages') || input.includes('pay') || input.includes('job') || input.includes('workplace') || input.includes('wage')) {
+      category = "Employment / Wage";
+      module = "RIGHTS_NAVIGATOR";
+      confidence = "HIGH";
+      if (input === 'my employer is treating me unfairly' || input === 'workplace dispute' || input.includes('unfairly')) {
+        needsClarification = true;
+        confidence = "MEDIUM";
+      }
+    } else if (input.includes('refund') || input.includes('product') || input.includes('seller') || input.includes('buy') || input.includes('shop') || input.includes('store') || input.includes('consumer') || input.includes('phone')) {
+      category = "Consumer / Refund";
+      module = "RIGHTS_NAVIGATOR";
+      confidence = "HIGH";
+    } else if (input.includes('police') || input.includes('brutality') || input.includes('force') || input.includes('arrest') || input.includes('detained') || input.includes('cop') || input.includes('stopped')) {
+      category = "Police / Public Authority";
+      module = "RIGHTS_NAVIGATOR";
+      confidence = "MEDIUM";
+      needsClarification = true;
+    } else if (input.includes('garbage') || input.includes('waste') || input.includes('sanitation') || input.includes('rubbish') || input.includes('cleaning')) {
+      category = "Sanitation / Waste";
+      module = "RIGHTS_NAVIGATOR";
+      confidence = "HIGH";
+    } else if (input.includes('road') || input.includes('pothole') || input.includes('infrastructure') || input.includes('street') || input.includes('pavement')) {
+      category = "Roads / Public Infrastructure";
+      confidence = "HIGH";
+      if (input.includes('spend') || input.includes('budget') || input.includes('allocated') || input.includes('spent') || input.includes('rti') || input.includes('spent on road')) {
+        module = "RTI_DRAFTING";
+      } else {
+        module = "RIGHTS_NAVIGATOR";
+      }
+    } else if (input.includes('scholarship') || input.includes('yashasvi') || input.includes('scheme') || input.includes('qualify')) {
+      category = "Education";
+      module = "SCHEME_ELIGIBILITY";
+      confidence = "HIGH";
+    } else if (input.includes('fill') || input.includes('application') || input.includes('income certificate') || input.includes('form')) {
+      category = "Identity / Public Documents";
+      module = "FORM_FILLER";
+      confidence = "HIGH";
+    } else if (input.includes('patent') || input.includes('trading') || input.includes('stock') || input.includes('cook') || input.includes('code') || input.includes('unrelated') || input.includes('cooking')) {
+      category = "Other Civic Issue";
+      module = "RIGHTS_NAVIGATOR";
+      confidence = "LOW";
+      reason = "This request is outside the scope of our supported legal/civic knowledge base.";
     }
-    if (input.includes('spend') || input.includes('road') || input.includes('budget') || input.includes('rti') || input.includes('information request') || input.includes('allocated')) {
-      return {
-        category: 'RTI_DRAFTING',
-        reason: 'Citizen wishes to seek records or files from a public authority.',
-        confidence: 'HIGH'
-      };
-    }
-    if (input.includes('form') || input.includes('application') || input.includes('fill') || input.includes('income certificate')) {
-      return {
-        category: 'FORM_FILLER',
-        reason: 'Citizen requests guidance completing a government application form.',
-        confidence: 'HIGH'
-      };
-    }
-    // Default fallback
-    return {
-      category: 'RIGHTS_NAVIGATOR',
-      reason: 'Routing to General Rights Navigator for situation analysis.',
-      confidence: 'MEDIUM'
-    };
+
+    return { category, module, confidence, needsClarification, reason };
   },
 
   analyzeRights: (text) => {
@@ -87,7 +119,101 @@ const mockService = {
       };
     }
 
-    // Workplace Salary Mock
+    // Police Complaint Mock
+    if (input.includes('police') || input.includes('brutality') || input.includes('force') || input.includes('arrest') || input.includes('detained') || input.includes('cop') || input.includes('stopped') || input.includes('threatened')) {
+      return {
+        whatWeUnderstand: "You are reporting police misconduct, which may include the use of excessive physical force, threat/intimidation, or illegal detention.",
+        informationThatMayApply: "Under Supreme Court guidelines on police reforms and respective state Police Acts, citizens are protected against police abuse of authority. Independent Police Complaints Authorities (PCA) are mandated at the state and district levels to investigate serious misconduct.",
+        why: "A complaint can be filed before the PCA for grievances like custodial excess, grievous hurt, extortion, or abuse of power. CPGRAMS and departmental vigilance units also accept grievances. The complaint must contain specific officer details and supporting medical or media records.",
+        whatYouMayDoNext: [
+          "Record all incident details immediately, including date, time, officer names, belt numbers, and witness contacts.",
+          "Seek medical attention immediately and secure a Medico-Legal Case (MLC) report if physical force was used.",
+          "File a written complaint with the Police Complaints Authority (PCA) or submit a grievance on CPGRAMS."
+        ],
+        documentsEvidenceThatMayHelp: [
+          "Medico-Legal Case (MLC) Report / Hospital records",
+          "Photographs or video/audio recordings of the incident",
+          "Eyewitness statements",
+          "Copy of any arbitrary fine slips or seizure memos"
+        ],
+        importantLimitations: "The PCA operates as a disciplinary audit authority. It can recommend suspensions or departmental actions but cannot directly award financial damages or cancel formal criminal charges (FIRs), which requires petitioning the High Court.",
+        sources: sources.length ? [sources[0]] : [],
+        disclaimer: LEGAL_DISCLAIMER,
+        mode: "DEMO"
+      };
+    }
+
+    // Sanitation & Waste Mock
+    if (input.includes('garbage') || input.includes('waste') || input.includes('sanitation') || input.includes('rubbish')) {
+      return {
+        whatWeUnderstand: "You are reporting neglected municipal garbage collection or open waste dumping in your locality.",
+        informationThatMayApply: "Under the Solid Waste Management Rules, 2016, municipal authorities have a statutory duty to collect segregated waste daily, clear public street bins, and maintain clean public areas.",
+        why: "Solid Waste Management Rules, 2016 legally obligate urban local bodies to organize waste transport and disposal. If local collectors fail to clear rubbish, citizens can file digital complaints on the national Swachhata app or escalate to the Ward Sanitary Inspector.",
+        whatYouMayDoNext: [
+          "Take geotagged photos of the accumulated garbage or open dump.",
+          "Submit a digital complaint ticket on the Swachhata App or the municipal e-district portal.",
+          "Coordinate with the local Resident Welfare Association (RWA) to file a group petition with the Ward Health Inspector."
+        ],
+        documentsEvidenceThatMayHelp: [
+          "Photographs of waste accumulation with timestamp",
+          "Reference numbers of previous unanswered complaint tickets",
+          "Resident petition letters signed by neighbors"
+        ],
+        importantLimitations: "Municipal response times can vary depending on local budget allocations and outsourced contractor worker availability. Severe structural issues may require higher municipal health commissioner escalations.",
+        sources: sources.length ? [sources[0]] : [],
+        disclaimer: LEGAL_DISCLAIMER,
+        mode: "DEMO"
+      };
+    }
+
+    // Roads & Infrastructure Mock
+    if (input.includes('road') || input.includes('pothole') || input.includes('infrastructure') || input.includes('street') || input.includes('pavement')) {
+      return {
+        whatWeUnderstand: "You are reporting damaged roads, broken street pavements, or potholes causing safety hazards.",
+        informationThatMayApply: "Under PWD road manuals and municipal Citizens' Charters, local public works divisions are responsible for street safety and timely pothole repairs.",
+        why: "Municipalities and PWD are legally responsible for road maintenance. The citizens' charter states that reported pothole defects must be repaired within 48 to 72 hours. Photo grievances filed on municipal apps or written letters to the Executive Engineer are the primary action routes.",
+        whatYouMayDoNext: [
+          "Capture photos of the damaged road sections, highlighting the safety hazard to vehicles/pedestrians.",
+          "Register a grievance ticket on the local municipal corporation app or portal.",
+          "Draft and deliver a formal complaint notice to the Public Works Department (PWD) Executive Engineer."
+        ],
+        documentsEvidenceThatMayHelp: [
+          "Geotagged photos of potholes or broken pavements",
+          "Doctor's report/bill if the road defect caused a vehicle accident or injury",
+          "Standard written complaint draft with location coordinates"
+        ],
+        importantLimitations: "Arterial roads and neighborhood colony lanes fall under different jurisdictions (State PWD vs. Local Municipal Corporation). Sending the complaint to the wrong body can delay repairs.",
+        sources: sources.length ? [sources[0]] : [],
+        disclaimer: LEGAL_DISCLAIMER,
+        mode: "DEMO"
+      };
+    }
+
+    // Consumer Refund Mock
+    if (input.includes('refund') || input.includes('defective') || input.includes('seller') || input.includes('product') || input.includes('consumer') || input.includes('phone') || input.includes('phone online')) {
+      return {
+        whatWeUnderstand: "You purchased a product (like a phone) online, and the seller is refusing to issue a refund or replacement for a defective item.",
+        informationThatMayApply: "Under the Consumer Protection Act, 2019, citizens are protected against unfair trade practices and receiving defective goods. E-commerce platforms are mandated to resolve consumer grievances.",
+        why: "Section 2(47) defines refusing to take back defective goods or refund money within 30 days as an unfair trade practice. Consumers are entitled to seek relief by registering complaints on the National Consumer Helpline or filing petitions before the Consumer Commission.",
+        whatYouMayDoNext: [
+          "Call the National Consumer Helpline at 1915 or register an online complaint on the INGRAM portal.",
+          "Send a formal written notice to the e-commerce company's grievance officer demanding a refund within 7 days.",
+          "If unresolved, file an e-daakhil case before the District Consumer Disputes Redressal Commission."
+        ],
+        documentsEvidenceThatMayHelp: [
+          "Invoice / Purchase receipt",
+          "Photos/Video of the defective product",
+          "Chat logs, emails, or call records with customer support",
+          "Copy of the return policy terms"
+        ],
+        importantLimitations: "The Consumer Protection Act applies only if you bought the product for personal use. Commercial purchases are excluded and fall under general contract litigation.",
+        sources: sources.length ? [sources[0]] : [],
+        disclaimer: LEGAL_DISCLAIMER,
+        mode: "DEMO"
+      };
+    }
+
+    // Workplace Salary Mock (default fallback)
     return {
       whatWeUnderstand: "Your wages/salary remain unpaid or delayed by your employer, violating timely payment standards.",
       informationThatMayApply: "Under the Payment of Wages Act, 1936, employers are obligated to pay all wages in cash, cheque, or bank transfer in a timely manner (by the 7th of the following month for establishments with < 1000 workers).",
@@ -190,20 +316,42 @@ const geminiService = {
       const prompt = `
         You are the Routing Agent of the Civic Action Engine.
         Classify the citizen's query into one of these 4 modules:
-        1. 'RIGHTS_NAVIGATOR' (for landlord disputes, tenant rights, consumer complaints, workplace wages/harassment, general civic rights)
-        2. 'SCHEME_ELIGIBILITY' (for government welfare schemes, scholarships, eligibility checks)
-        3. 'RTI_DRAFTING' (for requesting records, budgets, files, allocations, or roads info from the government under RTI)
-        4. 'FORM_FILLER' (for help filling out a specific application form, e.g. income certificate, caste certificate, birth cert)
+        - 'RIGHTS_NAVIGATOR' (for tenant disputes, wages, refund complaints, police misconduct, local sanitation, public road repairs)
+        - 'SCHEME_ELIGIBILITY' (for government welfare schemes, scholarships, eligibility checks)
+        - 'RTI_DRAFTING' (for requesting government files, road budgets, or information records under the RTI Act)
+        - 'FORM_FILLER' (for completing application forms, e.g. income certificate)
+
+        Also identify the specific taxonomy category of the query out of these 15 options:
+        - "Housing / Tenant"
+        - "Employment / Wage"
+        - "Consumer / Refund"
+        - "Police / Public Authority"
+        - "Education"
+        - "Healthcare / Public Health"
+        - "Accessibility / Disability"
+        - "Public Utilities"
+        - "Sanitation / Waste"
+        - "Roads / Public Infrastructure"
+        - "Local Government Services"
+        - "Identity / Public Documents"
+        - "Public Safety"
+        - "Environmental / Pollution"
+        - "Other Civic Issue"
+
+        Assess if the query is vague/ambiguous and needs further clarification questions (set needsClarification = true).
+        Assess the routing confidence (HIGH if it clearly matches supported categories, MEDIUM if it needs clarification, LOW if it is completely unsupported/out-of-scope).
 
         Input situation: "${text}"
 
         Provide your response as a valid JSON object matching this schema:
         {
-          "category": "RIGHTS_NAVIGATOR" | "SCHEME_ELIGIBILITY" | "RTI_DRAFTING" | "FORM_FILLER",
-          "reason": "short explanation of why you routed to this module",
-          "confidence": "HIGH" | "MEDIUM" | "LOW"
+          "category": "One of the 15 taxonomy category strings exactly",
+          "module": "RIGHTS_NAVIGATOR" | "SCHEME_ELIGIBILITY" | "RTI_DRAFTING" | "FORM_FILLER",
+          "confidence": "HIGH" | "MEDIUM" | "LOW",
+          "needsClarification": true | false,
+          "reason": "short explanation of your decision"
         }
-        Do not include markdown tags like \`\`\`json in the output. Just return the JSON object.
+        Do not include markdown tags like \`\`\`json. Return ONLY raw JSON.
       `;
 
       const result = await model.generateContent(prompt);
