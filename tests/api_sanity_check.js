@@ -102,19 +102,56 @@ async function runTestMatrix() {
       expectedModule: "RIGHTS_NAVIGATOR",
       expectedCategory: "Other Civic Issue",
       expectedConfidence: "LOW"
+    },
+    {
+      id: 13,
+      name: "Telugu Tenant Dispute",
+      query: "నా భూస్వామి నా డిపాజిట్ తిరిగి ఇవ్వడం లేదు",
+      expectedModule: "RIGHTS_NAVIGATOR",
+      expectedCategory: "Housing / Tenant",
+      expectedConfidence: "HIGH",
+      lang: "te"
+    },
+    {
+      id: 14,
+      name: "Hindi Tenant Dispute",
+      query: "मेरे मकान मालिक ने सुरक्षा जमा राशि वापस नहीं की",
+      expectedModule: "RIGHTS_NAVIGATOR",
+      expectedCategory: "Housing / Tenant",
+      expectedConfidence: "HIGH",
+      lang: "hi"
+    },
+    {
+      id: 15,
+      name: "Telugu Unsupported Fallback",
+      query: "పాలు ఎలా తయారు చేయాలి",
+      expectedModule: "RIGHTS_NAVIGATOR",
+      expectedCategory: "Other Civic Issue",
+      expectedConfidence: "LOW",
+      lang: "te"
+    },
+    {
+      id: 16,
+      name: "Hindi Unsupported Fallback",
+      query: "चाय कैसे बनाये",
+      expectedModule: "RIGHTS_NAVIGATOR",
+      expectedCategory: "Other Civic Issue",
+      expectedConfidence: "LOW",
+      lang: "hi"
     }
   ];
 
   for (const tc of testCases) {
+    let analyzeData;
     try {
       console.log(`--- Test ${tc.id}: ${tc.name} ---`);
-      console.log(`Query: "${tc.query}"`);
+      console.log(`Query: "${tc.query}" [Lang: ${tc.lang || 'en'}]`);
 
       // 1. Check Routing
       const routeRes = await fetch(`${BACKEND_URL}/api/route`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: tc.query })
+        body: JSON.stringify({ text: tc.query, lang: tc.lang || 'en' })
       });
       assert(routeRes.ok, `Routing status: ${routeRes.status}`);
       const routeData = await routeRes.json();
@@ -132,16 +169,22 @@ async function runTestMatrix() {
         const analyzeRes = await fetch(`${BACKEND_URL}/api/rights/analyze`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: tc.query })
+          body: JSON.stringify({ text: tc.query, lang: tc.lang || 'en' })
         });
         assert(analyzeRes.ok, `Analysis status: ${analyzeRes.status}`);
-        const analyzeData = await analyzeRes.json();
+        analyzeData = await analyzeRes.json();
 
         if (tc.expectedConfidence === 'LOW') {
           console.log(`✅ UNSUPPORTED FALLBACK TRIGGERED`);
           assert.strictEqual(analyzeData.status, 'UNSUPPORTED_FALLBACK', "Expected fallback status");
           assert(analyzeData.response.unsupported === true, "Marked unsupported");
-          assert(analyzeData.response.whatWeCannotVerifyYet.includes('not guess'), "Grounding check");
+          if (tc.lang === 'te') {
+            assert(analyzeData.response.whatWeCannotVerifyYet.includes('ధృవీకరించబడిన') || analyzeData.response.whatWeCannotVerifyYet.includes('సమాచారం లేదు') || analyzeData.response.whatWeCannotVerifyYet.includes('చెప్పము'), "Telugu grounding check");
+          } else if (tc.lang === 'hi') {
+            assert(analyzeData.response.whatWeCannotVerifyYet.includes('सत्यापित') || analyzeData.response.whatWeCannotVerifyYet.includes('कर सकते'), "Hindi grounding check");
+          } else {
+            assert(analyzeData.response.whatWeCannotVerifyYet.includes('not guess'), "English grounding check");
+          }
         } else {
           console.log(`✅ GROUNDED RESPONSE RETRIEVED`);
           assert(analyzeData.response.whatWeUnderstand !== undefined, "whatWeUnderstand populated");
@@ -159,6 +202,9 @@ async function runTestMatrix() {
       console.log(`✅ Test ${tc.id} PASSED\n`);
     } catch (err) {
       console.error(`❌ Test ${tc.id} FAILED:`, err.message);
+      if (typeof analyzeData !== 'undefined') {
+        console.error('Response Payload was:', JSON.stringify(analyzeData, null, 2));
+      }
       failed = true;
     }
   }

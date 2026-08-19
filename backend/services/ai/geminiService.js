@@ -40,32 +40,32 @@ const mockService = {
       };
     }
 
-    if (input.includes('landlord') || input.includes('rent') || input.includes('deposit') || input.includes('tenant')) {
+    if (input.includes('landlord') || input.includes('rent') || input.includes('deposit') || input.includes('tenant') || input.includes('భూస్వామి') || input.includes('అద్దె') || input.includes('కిరాయా') || input.includes('మకాన్ మాలిక్') || input.includes('मकान मालिक') || input.includes('किराया') || input.includes('जमा') || input.includes('టెనెంట్')) {
       category = "Housing / Tenant";
       module = "RIGHTS_NAVIGATOR";
       confidence = "HIGH";
-    } else if (input.includes('employer') || input.includes('salary') || input.includes('wages') || input.includes('pay') || input.includes('job') || input.includes('workplace') || input.includes('wage')) {
+    } else if (input.includes('employer') || input.includes('salary') || input.includes('wages') || input.includes('pay') || input.includes('job') || input.includes('workplace') || input.includes('wage') || input.includes('boss') || input.includes('యజమాని') || input.includes('జీతం') || input.includes('వేతనం') || input.includes('నౌకరి') || input.includes('नौकरी') || input.includes('वेतन') || input.includes('मालिक') || input.includes('काम')) {
       category = "Employment / Wage";
       module = "RIGHTS_NAVIGATOR";
       confidence = "HIGH";
-      if (input === 'my employer is treating me unfairly' || input === 'workplace dispute' || input.includes('unfairly')) {
+      if (input === 'my employer is treating me unfairly' || input === 'workplace dispute' || input.includes('unfairly') || input.includes('అన్యాయంగా') || input.includes('अन्यायपूर्ण')) {
         needsClarification = true;
         confidence = "MEDIUM";
       }
-    } else if (input.includes('refund') || input.includes('product') || input.includes('seller') || input.includes('buy') || input.includes('shop') || input.includes('store') || input.includes('consumer') || input.includes('phone')) {
+    } else if (input.includes('refund') || input.includes('product') || input.includes('seller') || input.includes('buy') || input.includes('shop') || input.includes('store') || input.includes('consumer') || input.includes('phone') || input.includes('రీఫండ్') || input.includes('విక్రేత') || input.includes('కొనుగోలు') || input.includes('रिफंड') || input.includes('विक्रेता') || input.includes('खरीद') || input.includes('फोन') || input.includes('ఫోన్')) {
       category = "Consumer / Refund";
       module = "RIGHTS_NAVIGATOR";
       confidence = "HIGH";
-    } else if (input.includes('police') || input.includes('brutality') || input.includes('force') || input.includes('arrest') || input.includes('detained') || input.includes('cop') || input.includes('stopped')) {
+    } else if (input.includes('police') || input.includes('brutality') || input.includes('force') || input.includes('arrest') || input.includes('detained') || input.includes('cop') || input.includes('stopped') || input.includes('పోలీస్') || input.includes('అరెస్టు') || input.includes('నిర్బంధం') || input.includes('पुलिस') || input.includes('गिरफ्तारी') || input.includes('हिरासत')) {
       category = "Police / Public Authority";
       module = "RIGHTS_NAVIGATOR";
       confidence = "MEDIUM";
       needsClarification = true;
-    } else if (input.includes('garbage') || input.includes('waste') || input.includes('sanitation') || input.includes('rubbish') || input.includes('cleaning')) {
+    } else if (input.includes('garbage') || input.includes('waste') || input.includes('sanitation') || input.includes('rubbish') || input.includes('cleaning') || input.includes('చెత్త') || input.includes('కచరా') || input.includes('कचरा') || input.includes('सफाई') || input.includes('శుభ్రం')) {
       category = "Sanitation / Waste";
       module = "RIGHTS_NAVIGATOR";
       confidence = "HIGH";
-    } else if (input.includes('road') || input.includes('pothole') || input.includes('infrastructure') || input.includes('street') || input.includes('pavement')) {
+    } else if (input.includes('road') || input.includes('pothole') || input.includes('infrastructure') || input.includes('street') || input.includes('pavement') || input.includes('రోడ్డు') || input.includes('గుంత') || input.includes('రహదారి') || input.includes('सड़क') || input.includes('गड्ढा') || input.includes('गली')) {
       category = "Roads / Public Infrastructure";
       confidence = "HIGH";
       if (input.includes('spend') || input.includes('budget') || input.includes('allocated') || input.includes('spent') || input.includes('rti') || input.includes('spent on road')) {
@@ -73,11 +73,11 @@ const mockService = {
       } else {
         module = "RIGHTS_NAVIGATOR";
       }
-    } else if (input.includes('scholarship') || input.includes('yashasvi') || input.includes('scheme') || input.includes('qualify')) {
+    } else if (input.includes('scholarship') || input.includes('yashasvi') || input.includes('scheme') || input.includes('qualify') || input.includes('పథకం') || input.includes('స్కాలర్‌షిప్') || input.includes('योजना') || input.includes('छात्रवृत्ति')) {
       category = "Education";
       module = "SCHEME_ELIGIBILITY";
       confidence = "HIGH";
-    } else if (input.includes('fill') || input.includes('application') || input.includes('income certificate') || input.includes('form')) {
+    } else if (input.includes('fill') || input.includes('application') || input.includes('income certificate') || input.includes('form') || input.includes('ఫారమ్') || input.includes('ధృవీకరణ పత్రం') || input.includes('फॉर्म') || input.includes('प्रमाण पत्र')) {
       category = "Identity / Public Documents";
       module = "FORM_FILLER";
       confidence = "HIGH";
@@ -91,148 +91,400 @@ const mockService = {
     return { category, module, confidence, needsClarification, reason };
   },
 
-  analyzeRights: (text) => {
+  analyzeRights: (text, lang = 'en') => {
     const input = text.toLowerCase();
     const sources = retrievalService.search(text, 'rights');
     
-    // Landlord dispute mock
-    if (input.includes('landlord') || input.includes('deposit') || input.includes('rent')) {
+    // 1. Landlord dispute mock
+    if (input.includes('landlord') || input.includes('deposit') || input.includes('rent') || input.includes('అద్దె') || input.includes('కిరాయా')) {
+      if (lang === 'te') {
+        return {
+          whatWeUnderstand: "మీరు అద్దె గదిని ఖాళీ చేసారు, కానీ భూస్వామి మీ సెక్యూరిటీ డిపాజిట్‌ను తిరిగి ఇవ్వడం లేదు.",
+          informationThatMayApply: "మోడల్ టెనెన్సీ యాక్ట్ నిబంధనల ప్రకారం, నివాస గృహాల సెక్యూరిటీ డిపాజిట్ గరిష్టంగా రెండు నెలల అద్దెకు పరిమితం చేయబడింది. గదిని ఖాళీ చేసిన వెంటనే డిపాజిట్ తిరిగి ఇవ్వాలి.",
+          why: "అద్దె బకాయిలు లేదా నష్టాలకు మాత్రమే భూస్వామి డిపాజిట్ నుండి మినహాయించవచ్చు. సాధారణ గది పెయింట్ లేదా అరుగుదలకు మినహాయింపులు చెల్లవు. 30 రోజుల్లోగా డిపాజిట్ ఇవ్వకపోతే రెంట్ ట్రిబ్యునల్‌ను ఆశ్రయించవచ్చు.",
+          whatYouMayDoNext: [
+            "15 రోజుల్లోగా డిపాజిట్ తిరిగి ఇవ్వాలని కోరుతూ లిఖితపూర్వక నోటీసు పంపండి.",
+            "అద్దె ఒప్పంద పత్రం మరియు డిపాజిట్ రసీదులను సేకరించండి.",
+            "స్థానిక రెంట్ అథారిటీ లేదా రెంట్ కోర్టులో పిటిషన్ దాఖలు చేయండి."
+          ],
+          documentsEvidenceThatMayHelp: [
+            "అద్దె ఒప్పంద పత్రం",
+            "అద్దె రసీదులు / బ్యాంక్ స్టేట్మెంట్",
+            "లిఖితపూర్వక చాట్ సంభాషణలు"
+          ],
+          importantLimitations: "ఇది సాధారణ సమాచారం మాత్రమే. ఒప్పందం రిజిస్టర్ కాకపోతే సాధారణ సివిల్ కోర్టుల ద్వారా పరిష్కరించుకోవాలి.",
+          sources: sources.length ? [sources[0]] : [],
+          disclaimer: LEGAL_DISCLAIMER,
+          mode: "DEMO"
+        };
+      } else if (lang === 'hi') {
+        return {
+          whatWeUnderstand: "आपने किराए का कमरा खाली कर दिया है, लेकिन मकान मालिक आपका सुरक्षा जमा (सिक्योरिटी डिपॉजिट) वापस नहीं कर रहा है।",
+          informationThatMayApply: "मॉडल टेनेंसी एक्ट के दिशा-निर्देशों के तहत, आवासीय संपत्तियों के लिए सिक्योरिटी डिपॉजिट अधिकतम दो महीने के किराए तक सीमित है।",
+          why: "मकान मालिक केवल बकाया किराए या वास्तविक नुकसान के लिए ही कटौती कर सकता है। सामान्य टूट-फूट या पेंटिंग के लिए कटौती मान्य नहीं है। 30 दिनों के भीतर रिफंड न मिलने पर रेंट ट्रिब्यूनल में शिकायत की जा सकती है।",
+          whatYouMayDoNext: [
+            "15 दिनों के भीतर जमा राशि वापस करने की मांग करते हुए लिखित नोटिस भेजें।",
+            "किराया समझौता (रेंट एग्रीमेंट) और जमा भुगतान रसीदें एकत्र करें।",
+            "स्थानीय रेंट अथॉरिटी या रेंट कोर्ट में औपचारिक शिकायत दर्ज करें।"
+          ],
+          documentsEvidenceThatMayHelp: [
+            "किराया समझौता पत्र",
+            "किराया रसीदें / बैंक स्टेटमेंट",
+            "मकान मालिक के साथ लिखित बातचीत"
+          ],
+          importantLimitations: "यह एक सामान्य मार्गदर्शिका है। यदि किराया समझौता पंजीकृत नहीं है, तो सामान्य सिविल कोर्ट लागू हो सकता है।",
+          sources: sources.length ? [sources[0]] : [],
+          disclaimer: LEGAL_DISCLAIMER,
+          mode: "DEMO"
+        };
+      } else {
+        return {
+          whatWeUnderstand: "You vacated your rented room, but the landlord is withholding the refund of your advance security deposit without valid justification.",
+          informationThatMayApply: "Under Chapter IV of the Model Tenancy Act guidelines, advance security deposits for residential properties are capped at a maximum of two months' rent. The landlord is legally required to refund the deposit upon taking over vacant possession.",
+          why: "A landlord may make deductions only for outstanding utility bills, unpaid rent, or actual tenant-caused damage. Deductions for normal wear and tear (like standard paint weathering) are not permitted. If deductions are made without a written itemized list or if the refund is withheld beyond 30 days, the tenant can approach the local Rent Tribunal.",
+          whatYouMayDoNext: [
+            "Send a written demand notice requesting the return of the deposit within 15 days.",
+            "Compile receipts showing deposit payments, tenancy agreements, and pictures of the vacant room.",
+            "File a formal dispute petition before the Rent Authority or Rent Tribunal."
+          ],
+          documentsEvidenceThatMayHelp: [
+            "Tenancy Agreement",
+            "Rent Receipts / Bank statement showing deposit payment",
+            "Written communication (emails/messages) with landlord",
+            "Vacation Notice & Proof of hand-over"
+          ],
+          importantLimitations: "This is a general guide. Tenancy laws vary by state jurisdictions. If your agreement was not registered, local civil courts or mediation centers may apply instead of the specialized Rent Authority.",
+          sources: sources.length ? [sources[0]] : [],
+          disclaimer: LEGAL_DISCLAIMER,
+          mode: "DEMO"
+        };
+      }
+    }
+
+    // 2. Police Complaint Mock
+    if (input.includes('police') || input.includes('brutality') || input.includes('force') || input.includes('arrest') || input.includes('detained') || input.includes('cop') || input.includes('stopped') || input.includes('threatened') || input.includes('పోలీస్') || input.includes('पुलिस')) {
+      if (lang === 'te') {
+        return {
+          whatWeUnderstand: "మీరు పోలీసుల దౌర్జన్యం, అక్రమ నిర్బంధం లేదా అధిక శారీరక బలాన్ని ఉపయోగించడం గురించి నివేదిస్తున్నారు.",
+          informationThatMayApply: "సుప్రీం కోర్ట్ పోలీస్ సంస్కరణల మార్గదర్శకాల ప్రకారం, పోలీస్ దుశ్చర్యలపై విచారణ జరిపేందుకు స్వతంత్ర పోలీస్ ఫిర్యాదుల అథారిటీ (PCA) ఉంది.",
+          why: "పోలీస్ దౌర్జన్యం, బెదిరింపులు లేదా అక్రమ నిర్బంధాలపై PCA కి ఫిర్యాదు చేయవచ్చు. ఫిర్యాదులో పోలీస్ అధికారి పేరు, స్టేషన్ మరియు తగిన వైద్య/వీడియో సాక్ష్యాలు ఉండాలి.",
+          whatYouMayDoNext: [
+            "ఘటన వివరాలను (తేదీ, సమయం, అధికారి పేరు, బెల్ట్ నంబర్) వెంటనే రికార్డ్ చేయండి.",
+            "శారీరక గాయాలైతే వెంటనే ప్రభుత్వ ఆసుపత్రిలో మెడికో-లీగల్ కేసు (MLC) రిపోర్టును పొందండి.",
+            "పోలీస్ ఫిర్యాదుల అథారిటీ (PCA) లేదా CPGRAMS లో ఫిర్యాదు చేయండి."
+          ],
+          documentsEvidenceThatMayHelp: [
+            "వైద్య నివేదికలు / ఎమ్మెల్సీ రిపోర్ట్",
+            "ఫోటోలు లేదా వీడియో రికార్డింగ్‌లు",
+            "ప్రత్యక్ష సాక్షుల ప్రకటనలు"
+          ],
+          importantLimitations: "PCA పోలీస్ అధికారులపై చర్యలను మాత్రమే సిఫార్సు చేయగలదు, అది నేరారోపణలను రద్దు చేయలేదు.",
+          sources: sources.length ? [sources[0]] : [],
+          disclaimer: LEGAL_DISCLAIMER,
+          mode: "DEMO"
+        };
+      } else if (lang === 'hi') {
+        return {
+          whatWeUnderstand: "आप पुलिस दुर्व्यवहार की रिपोर्ट कर रहे हैं, जिसमें अत्यधिक बल का प्रयोग, धमकी या अवैध हिरासत शामिल हो सकती है।",
+          informationThatMayApply: "सुप्रीम कोर्ट के पुलिस सुधारों के दिशा-निर्देशों के तहत, पुलिस दुर्व्यवहार की जांच के लिए स्वतंत्र पुलिस शिकायत प्राधिकरण (PCA) का गठन किया गया है।",
+          why: "पुलिस दुर्व्यवहार, धमकी या जबरन वसूली के खिलाफ PCA में शिकायत दर्ज की जा सकती है। शिकायत में अधिकारी का विवरण और चिकित्सा/वीडियो साक्ष्य संलग्न होने चाहिए।",
+          whatYouMayDoNext: [
+            "घटना का विवरण (तारीख, समय, अधिकारी का नाम, बेल्ट नंबर) तुरंत नोट करें।",
+            "यदि शारीरिक बल का प्रयोग किया गया है, तो तुरंत चिकित्सा सहायता लें और MLC रिपोर्ट प्राप्त करें।",
+            "पुलिस शिकायत प्राधिकरण (PCA) या CPGRAMS पोर्टल पर शिकायत दर्ज करें।"
+          ],
+          documentsEvidenceThatMayHelp: [
+            "मेडिकल रिपोर्ट / एमएलसी दस्तावेज",
+            "घटना की तस्वीरें या वीडियो/ऑडियो रिकॉर्डिंग",
+            "चश्मदीद गवाहों के बयान"
+          ],
+          importantLimitations: "PCA पुलिस अधिकारियों के खिलाफ विभागीय कार्रवाई की सिफारिश कर सकता है, लेकिन यह दर्ज आपराधिक मामलों को रद्द नहीं कर सकता।",
+          sources: sources.length ? [sources[0]] : [],
+          disclaimer: LEGAL_DISCLAIMER,
+          mode: "DEMO"
+        };
+      } else {
+        return {
+          whatWeUnderstand: "You are reporting police misconduct, which may include the use of excessive physical force, threat/intimidation, or illegal detention.",
+          informationThatMayApply: "Under Supreme Court guidelines on police reforms and respective state Police Acts, citizens are protected against police abuse of authority. Independent Police Complaints Authorities (PCA) are mandated at the state and district levels to investigate serious misconduct.",
+          why: "A complaint can be filed before the PCA for grievances like custodial excess, grievous hurt, extortion, or abuse of power. CPGRAMS and departmental vigilance units also accept grievances. The complaint must contain specific officer details and supporting medical or media records.",
+          whatYouMayDoNext: [
+            "Record all incident details immediately, including date, time, officer names, belt numbers, and witness contacts.",
+            "Seek medical attention immediately and secure a Medico-Legal Case (MLC) report if physical force was used.",
+            "File a written complaint with the Police Complaints Authority (PCA) or submit a grievance on CPGRAMS."
+          ],
+          documentsEvidenceThatMayHelp: [
+            "Medico-Legal Case (MLC) Report / Hospital records",
+            "Photographs or video/audio recordings of the incident",
+            "Eyewitness statements",
+            "Copy of any arbitrary fine slips or seizure memos"
+          ],
+          importantLimitations: "The PCA operates as a disciplinary audit authority. It can recommend suspensions or departmental actions but cannot directly award financial damages or cancel formal criminal charges (FIRs), which requires petitioning the High Court.",
+          sources: sources.length ? [sources[0]] : [],
+          disclaimer: LEGAL_DISCLAIMER,
+          mode: "DEMO"
+        };
+      }
+    }
+
+    // 3. Sanitation & Waste Mock
+    if (input.includes('garbage') || input.includes('waste') || input.includes('sanitation') || input.includes('rubbish') || input.includes('చెత్త') || input.includes('कचरा')) {
+      if (lang === 'te') {
+        return {
+          whatWeUnderstand: "మీ ప్రాంతంలో మున్సిపల్ చెత్త సేకరణ నిర్లక్ష్యం లేదా రోడ్లపై వ్యర్థాలు పేరుకుపోవడం గురించి నివేదిస్తున్నారు.",
+          informationThatMayApply: "ఘన వ్యర్థాల నిర్వహణ నియమాలు, 2016 ప్రకారం, స్థానిక మున్సిపాలిటీలు ప్రతిరోజూ చెత్తను సేకరించడం మరియు శుభ్రపరచడం చట్టబద్ధమైన బాధ్యత.",
+          why: "మున్సిపాలిటీ సకాలంలో చెత్తను సేకరించకపోతే, పౌరులకు స్వచ్ఛతా యాప్ లేదా స్థానిక మున్సిపల్ పోర్టల్ ద్వారా ఫిర్యాదు చేసే హక్కు ఉంది.",
+          whatYouMayDoNext: [
+            "చెత్త పేరుకుపోయిన స్థలాన్ని ఫోటో తీయండి.",
+            "స్వచ్ఛతా యాప్ లేదా మున్సిపల్ ఇ-డిస్ట్రిక్ట్ పోర్టల్‌లో ఆన్‌లైన్ ఫిర్యాదును నమోదు చేయండి.",
+            "స్థానిక వార్డు శానిటరీ ఇన్‌స్పెక్టర్‌కు లిఖితపూర్వక ఫిర్యాదు పంపండి."
+          ],
+          documentsEvidenceThatMayHelp: [
+            "సమయంతో కూడిన చెత్త కుప్పల ఫోటోలు",
+            "మునుపటి ఫిర్యాదుల వివరాలు",
+            "నివాసితుల సంతకాలతో కూడిన వినతిపత్రం"
+          ],
+          importantLimitations: "మున్సిపాలిటీల స్పందన సమయం స్థానిక కాంట్రాక్టర్ల సిబ్బంది లభ్యతపై ఆధారపడి ఉంటుంది.",
+          sources: sources.length ? [sources[0]] : [],
+          disclaimer: LEGAL_DISCLAIMER,
+          mode: "DEMO"
+        };
+      } else if (lang === 'hi') {
+        return {
+          whatWeUnderstand: "आप अपने क्षेत्र में कचरा उठाने में लापरवाही या सड़कों पर कचरा जमा होने की रिपोर्ट कर रहे हैं।",
+          informationThatMayApply: "ठोस अपशिष्ट प्रबंधन नियम, 2016 के तहत, स्थानीय नगर पालिकाओं का यह कानूनी कर्तव्य है कि वे प्रतिदिन कचरा इकट्ठा करें और सफाई सुनिश्चित करें।",
+          why: "यदि नगर पालिका कचरा साफ करने में विफल रहती है, तो नागरिकों को राष्ट्रीय स्वच्छता ऐप या स्थानीय नगर निगम पोर्टल के माध्यम से शिकायत दर्ज करने का अधिकार है।",
+          whatYouMayDoNext: [
+            "जमा हुए कचरे की तस्वीरें (समय और स्थान के साथ) लें।",
+            "स्वच्छता ऐप या नगर निगम के ई-डिस्ट्रिक्ट पोर्टल पर ऑनलाइन शिकायत दर्ज करें।",
+            "स्थानीय वार्ड स्वच्छता निरीक्षक (सैनिटरी इंस्पेक्टर) को लिखित शिकायत सौंपें।"
+          ],
+          documentsEvidenceThatMayHelp: [
+            "कचरा जमा होने की तस्वीरें",
+            "पिछली शिकायतों के टिकट संदर्भ नंबर",
+            "पड़ोसियों द्वारा हस्ताक्षरित शिकायत पत्र"
+          ],
+          importantLimitations: "नगर निगम की प्रतिक्रिया का समय स्थानीय ठेकेदार के कर्मचारियों की उपलब्धता पर निर्भर करता है।",
+          sources: sources.length ? [sources[0]] : [],
+          disclaimer: LEGAL_DISCLAIMER,
+          mode: "DEMO"
+        };
+      } else {
+        return {
+          whatWeUnderstand: "You are reporting neglected municipal garbage collection or open waste dumping in your locality.",
+          informationThatMayApply: "Under the Solid Waste Management Rules, 2016, municipal authorities have a statutory duty to collect segregated waste daily, clear public street bins, and maintain clean public areas.",
+          why: "Solid Waste Management Rules, 2016 legally obligate urban local bodies to organize waste transport and disposal. If local collectors fail to clear rubbish, citizens can file digital complaints on the national Swachhata app or escalate to the Ward Sanitary Inspector.",
+          whatYouMayDoNext: [
+            "Take geotagged photos of the accumulated garbage or open dump.",
+            "Submit a digital complaint ticket on the Swachhata App or the municipal e-district portal.",
+            "Coordinate with the local Resident Welfare Association (RWA) to file a group petition with the Ward Health Inspector."
+          ],
+          documentsEvidenceThatMayHelp: [
+            "Photographs of waste accumulation with timestamp",
+            "Reference numbers of previous unanswered complaint tickets",
+            "Resident petition letters signed by neighbors"
+          ],
+          importantLimitations: "Municipal response times can vary depending on local budget allocations and outsourced contractor worker availability. Severe structural issues may require higher municipal health commissioner escalations.",
+          sources: sources.length ? [sources[0]] : [],
+          disclaimer: LEGAL_DISCLAIMER,
+          mode: "DEMO"
+        };
+      }
+    }
+
+    // 4. Roads & Infrastructure Mock
+    if (input.includes('road') || input.includes('pothole') || input.includes('infrastructure') || input.includes('street') || input.includes('pavement') || input.includes('రోడ్డు') || input.includes('सड़क')) {
+      if (lang === 'te') {
+        return {
+          whatWeUnderstand: "మీరు రోడ్డుపై గుంతలు, విరిగిన ఫుట్‌పాత్‌లు లేదా ప్రజా పనుల ఆలస్యం గురించి నివేదిస్తున్నారు.",
+          informationThatMayApply: "మున్సిపల్ పీడబ్ల్యూడీ (PWD) సిటిజన్స్ చార్టర్ ప్రకారం, రహదారుల నిర్వహణ మరియు గుంతల మరమ్మత్తు ప్రభుత్వ బాధ్యత.",
+          why: "పీడబ్ల్యూడీ మాన్యువల్ ప్రకారం, రహదారుల భద్రతను కాపాడడం మరియు నివేదించిన 48-72 గంటల్లో గుంతలను పూడ్చడం अधिकारियों బాధ్యత.",
+          whatYouMayDoNext: [
+            "గుంతలు లేదా పాడైపోయిన రోడ్డును ఫోటోలు తీయండి.",
+            "మున్సిపల్ యాప్‌లో ఫిర్యాదును నమోదు చేయండి.",
+            "PWD ఎగ్జిక్యూటివ్ ఇంజనీర్‌కు అధికారిక లేఖ పంపండి."
+          ],
+          documentsEvidenceThatMayHelp: [
+            "రోడ్డు గుంతల ఫోటోలు",
+            "రోడ్డు సమస్యల వల్ల జరిగిన ప్రమాదాలు/వైద్య ఖర్చుల పత్రాలు",
+            "లిఖితపూర్వక ఫిర్యాదు నమూనా"
+          ],
+          importantLimitations: "రహదారి విభాగం PWD పరిధిలోకి వస్తుందా లేదా స్థానిక మున్సిపాలిటీ కిందకు వస్తుందా అనేది నిర్ధారించుకోవాలి.",
+          sources: sources.length ? [sources[0]] : [],
+          disclaimer: LEGAL_DISCLAIMER,
+          mode: "DEMO"
+        };
+      } else if (lang === 'hi') {
+        return {
+          whatWeUnderstand: "आप सड़क पर गड्ढों, टूटे फुटपाथ या सार्वजनिक निर्माण कार्यों में देरी की रिपोर्ट कर रहे हैं।",
+          informationThatMayApply: "नगर निगम पीडब्ल्यूडी (PWD) नागरिक चार्टर के तहत, सड़कों का रखरखाव और गड्ढों की मरम्मत सुनिश्चित करना सरकार का कर्तव्य है।",
+          why: "पीडब्ल्यूडी नियमावली के अनुसार, गड्ढों की रिपोर्ट मिलने के 48 से 72 घंटों के भीतर मरम्मत की जानी चाहिए। शिकायत दर्ज करने के लिए नगर निगम ऐप या पीडब्ल्यूडी अभियंता को पत्र लिखना मुख्य माध्यम है।",
+          whatYouMayDoNext: [
+            "क्षतिग्रस्त सड़क या गड्ढों की तस्वीरें लें।",
+            "नगर निगम के शिकायत पोर्टल पर अपनी शिकायत दर्ज करें।",
+            "PWD कार्यकारी अभियंता (Executive Engineer) को लिखित शिकायत पत्र भेजें।"
+          ],
+          documentsEvidenceThatMayHelp: [
+            "गड्ढों या टूटी सड़क की तस्वीरें",
+            "सड़क खराबी के कारण हुई दुर्घटना या वाहन नुकसान की रिपोर्ट",
+            "लिखित शिकायत पत्र का प्रारूप"
+          ],
+          importantLimitations: "अलग-अलग सड़कें अलग-अलग विभागों (राज्य पीडब्ल्यूडी बनाम नगर निगम) के अधीन होती हैं। गलत विभाग में शिकायत भेजने से देरी हो सकती है।",
+          sources: sources.length ? [sources[0]] : [],
+          disclaimer: LEGAL_DISCLAIMER,
+          mode: "DEMO"
+        };
+      } else {
+        return {
+          whatWeUnderstand: "You are reporting damaged roads, broken street pavements, or potholes causing safety hazards.",
+          informationThatMayApply: "Under PWD road manuals and municipal Citizens' Charters, local public works divisions are responsible for street safety and timely pothole repairs.",
+          why: "Municipalities and PWD are legally responsible for road maintenance. The citizens' charter states that reported pothole defects must be repaired within 48 to 72 hours. Photo grievances filed on municipal apps or written letters to the Executive Engineer are the primary action routes.",
+          whatYouMayDoNext: [
+            "Capture photos of the damaged road sections, highlighting the safety hazard to vehicles/pedestrians.",
+            "Register a grievance ticket on the local municipal corporation app or portal.",
+            "Draft and deliver a formal complaint notice to the Public Works Department (PWD) Executive Engineer."
+          ],
+          documentsEvidenceThatMayHelp: [
+            "Geotagged photos of potholes or broken pavements",
+            "Doctor's report/bill if the road defect caused a vehicle accident or injury",
+            "Standard written complaint draft with location coordinates"
+          ],
+          importantLimitations: "Arterial roads and neighborhood colony lanes fall under different jurisdictions (State PWD vs. Local Municipal Corporation). Sending the complaint to the wrong body can delay repairs.",
+          sources: sources.length ? [sources[0]] : [],
+          disclaimer: LEGAL_DISCLAIMER,
+          mode: "DEMO"
+        };
+      }
+    }
+
+    // 5. Consumer Refund Mock
+    if (input.includes('refund') || input.includes('defective') || input.includes('seller') || input.includes('product') || input.includes('consumer') || input.includes('phone') || input.includes('కొనుగోలు') || input.includes('रिफंड')) {
+      if (lang === 'te') {
+        return {
+          whatWeUnderstand: "మీరు ఆన్‌లైన్ కొనుగోలులో ఫోన్ పాడైపోయింది, కానీ విక్రేత రీఫండ్ ఇవ్వడానికి నిరాకరిస్తున్నాడు.",
+          informationThatMayApply: "వినియోగదారుల రక్షణ చట్టం, 2019 ప్రకారం, పాడైపోయిన వస్తువులను మార్చడానికి లేదా రీఫండ్ ఇవ్వడానికి నిరాకరించడం అన్యాయమైన వ్యాపార పద్ధతి కిందకు వస్తుంది.",
+          why: "రీఫండ్ ఇవ్వడానికి నిరాకరిస్తే, వినియోగదారులు జాతీయ కస్టమర్ హెల్ప్‌లైన్ లేదా జిల్లా వినియోగదారుల కమిషన్‌లో పిటిషన్ దాఖలు చేయవచ్చు.",
+          whatYouMayDoNext: [
+            "జాతీయ వినియోగదారుల హెల్ప్‌లైన్ నంబర్ 1915 కి కాల్ చేయండి లేదా INGRAM పోర్టల్‌లో నమోదు చేసుకోండి.",
+            "కంపెనీ ప్రతినిధికి 7 రోజుల్లోగా రీఫండ్ ఇవ్వాలని డిమాండ్ నోటీసు పంపండి.",
+            "పరిష్కారం కాకపోతే e-daakhil పోర్టల్ ద్వారా జిల్లా వినియోగదారుల కోర్టులో కేసు వేయండి."
+          ],
+          documentsEvidenceThatMayHelp: [
+            "వస్తువు కొనుగోలు బిల్లు / రసీదు",
+            "పాడైపోయిన వస్తువు ఫోటోలు / వీడియోలు",
+            "కస్టమర్ సపోర్ట్ ఈమెయిల్స్ / చాట్ సంభాషణలు"
+          ],
+          importantLimitations: "ఈ చట్టం వ్యక్తిగత అవసరాల కోసం కొనుగోలు చేసిన వస్తువులకు మాత్రమే వర్తిస్తుంది, వ్యాపార ప్రయోజనాల కొనుగోళ్లకు వర్తించదు.",
+          sources: sources.length ? [sources[0]] : [],
+          disclaimer: LEGAL_DISCLAIMER,
+          mode: "DEMO"
+        };
+      } else if (lang === 'hi') {
+        return {
+          whatWeUnderstand: "आपने ऑनलाइन सामान या फ़ोन खरीदा है जो खराब निकला, लेकिन विक्रेता रिफंड देने से मना कर रहा है।",
+          informationThatMayApply: "उपभोक्ता संरक्षण अधिनियम, 2019 के तहत, खराब सामान को वापस लेने या रिफंड देने से मना करना अनुचित व्यापार व्यवहार माना जाता है।",
+          why: "रिफंड न मिलने पर, उपभोक्ता राष्ट्रीय उपभोक्ता हेल्पलाइन या जिला उपभोक्ता फोरम में मामला दर्ज करा सकते हैं।",
+          whatYouMayDoNext: [
+            "राष्ट्रीय उपभोक्ता हेल्पलाइन 1915 पर कॉल करें या INGRAM पोर्टल पर शिकायत दर्ज करें।",
+            "कंपनी के शिकायत अधिकारी को 7 दिनों के भीतर रिफंड जारी करने का लिखित मांग पत्र भेजें।",
+            "समाधान न होने पर e-daakhil पोर्टल के माध्यम से जिला उपभोक्ता आयोग में शिकायत दर्ज करें।"
+          ],
+          documentsEvidenceThatMayHelp: [
+            "सामान का बिल / रसीद",
+            "खराब उत्पाद की तस्वीरें या वीडियो रिकॉर्डिंग",
+            "कस्टमर केयर के साथ चैट लॉग या ईमेल बातचीत"
+          ],
+          importantLimitations: "यह अधिनियम केवल व्यक्तिगत उपयोग के लिए खरीदे गए उत्पादों पर लागू होता है, व्यावसायिक खरीदारी इस कानून से बाहर है।",
+          sources: sources.length ? [sources[0]] : [],
+          disclaimer: LEGAL_DISCLAIMER,
+          mode: "DEMO"
+        };
+      } else {
+        return {
+          whatWeUnderstand: "You purchased a product (like a phone) online, and the seller is refusing to issue a refund or replacement for a defective item.",
+          informationThatMayApply: "Under the Consumer Protection Act, 2019, citizens are protected against unfair trade practices and receiving defective goods. E-commerce platforms are mandated to resolve consumer grievances.",
+          why: "Section 2(47) defines refusing to take back defective goods or refund money within 30 days as an unfair trade practice. Consumers are entitled to seek relief by registering complaints on the National Consumer Helpline or filing petitions before the Consumer Commission.",
+          whatYouMayDoNext: [
+            "Call the National Consumer Helpline at 1915 or register an online complaint on the INGRAM portal.",
+            "Send a formal written notice to the e-commerce company's grievance officer demanding a refund within 7 days.",
+            "If unresolved, file an e-daakhil case before the District Consumer Disputes Redressal Commission."
+          ],
+          documentsEvidenceThatMayHelp: [
+            "Invoice / Purchase receipt",
+            "Photos/Video of the defective product",
+            "Chat logs, emails, or call records with customer support",
+            "Copy of the return policy terms"
+          ],
+          importantLimitations: "The Consumer Protection Act applies only if you bought the product for personal use. Commercial purchases are excluded and fall under general contract litigation.",
+          sources: sources.length ? [sources[0]] : [],
+          disclaimer: LEGAL_DISCLAIMER,
+          mode: "DEMO"
+        };
+      }
+    }
+
+    // 6. Workplace Salary Mock (default fallback)
+    if (lang === 'te') {
       return {
-        whatWeUnderstand: "You vacated your rented room, but the landlord is withholding the refund of your advance security deposit without valid justification.",
-        informationThatMayApply: "Under Chapter IV of the Model Tenancy Act guidelines, advance security deposits for residential properties are capped at a maximum of two months' rent. The landlord is legally required to refund the deposit upon taking over vacant possession.",
-        why: "A landlord may make deductions only for outstanding utility bills, unpaid rent, or actual tenant-caused damage. Deductions for normal wear and tear (like standard paint weathering) are not permitted. If deductions are made without a written itemized list or if the refund is withheld beyond 30 days, the tenant can approach the local Rent Tribunal.",
+        whatWeUnderstand: "మీ యజమాని మీకు జీతం చెల్లించలేదు లేదా ఆలస్యం చేసారు, ఇది సకాలంలో చెల్లింపు నిబంధనలను ఉల్లంఘిస్తుంది.",
+        informationThatMayApply: "వేతన చెల్లింపు చట్టం, 1936 ప్రకారం, యజమానులు ప్రతి నెలా సకాలంలో వేతనాలు చెల్లించాలి (సాధారణంగా తదుపరి నెల 7వ తేదీ లోపు).",
+        why: "చట్టంలోని సెక్షన్ 7 ప్రకారం అనధికారిక జీతం మినహాయింపులు చట్టవిరుద్ధం. ఆలస్యమైన చెల్లింపులకు పరిహారంతో పాటు పూర్తి వేతనాన్ని పొందే హక్కు కార్మికులకు ఉంది.",
         whatYouMayDoNext: [
-          "Send a written demand notice requesting the return of the deposit within 15 days.",
-          "Compile receipts showing deposit payments, tenancy agreements, and pictures of the vacant room.",
-          "File a formal dispute petition before the Rent Authority or Rent Tribunal."
+          "యజమానికి లిఖితపూర్వక జీతం డిమాండ్ లేఖను రిజిస్టర్డ్ పోస్ట్/ఈమెయిల్ ద్వారా పంపండి.",
+          "నియామక పత్రం మరియు జీతం స్లిప్పులను సేకరించండి.",
+          "స్థానిక లేబర్ కమిషనర్‌కు సెక్షన్ 15 కింద అధికారిక ఫిర్యాదును సమర్పించండి."
         ],
         documentsEvidenceThatMayHelp: [
-          "Tenancy Agreement",
-          "Rent Receipts / Bank statement showing deposit payment",
-          "Written communication (emails/messages) with landlord",
-          "Vacation Notice & Proof of hand-over"
+          "నియామక పత్రం / ఒప్పంద పత్రం",
+          "జీతం స్లిప్పులు / బ్యాంక్ స్టేట్‌మెంట్",
+          "పని పూర్తి చేసినట్లు చాట్ హిస్టరీ"
         ],
-        importantLimitations: "This is a general guide. Tenancy laws vary by state jurisdictions. If your agreement was not registered, local civil courts or mediation centers may apply instead of the specialized Rent Authority.",
+        importantLimitations: "ఈ చట్టం ప్రధానంగా నిర్ణీత వేతన పరిమితి లోపు ఉన్న ఉద్యోగులకు మాత్రమే వర్తిస్తుంది.",
+        sources: sources.length ? [sources[0]] : [],
+        disclaimer: LEGAL_DISCLAIMER,
+        mode: "DEMO"
+      };
+    } else if (lang === 'hi') {
+      return {
+        whatWeUnderstand: "आपके नियोक्ता ने आपके वेतन का भुगतान नहीं किया है या देरी की है, जो समय पर भुगतान नियमों का उल्लंघन है।",
+        informationThatMayApply: "मजदूरी भुगतान अधिनियम, 1936 के तहत, नियोक्ताओं को हर महीने समय पर वेतन का भुगतान करना अनिवार्य है (आमतौर पर अगले महीने की 7 तारीख तक)।",
+        why: "अधिनियम की धारा 7 के तहत अनधिकृत कटौती अवैध है। कर्मचारी समय पर भुगतान न होने पर श्रम विभाग में दावा प्रस्तुत कर सकते हैं।",
+        whatYouMayDoNext: [
+          "पंजीकृत डाक/ईमेल के माध्यम से अपने नियोक्ता को वेतन की मांग का लिखित पत्र भेजें।",
+          "नियुक्ति पत्र और वेतन पर्ची (सैलरी स्लिप) एकत्र करें।",
+          "श्रम आयुक्त (लेबर कमिश्नर) के पास धारा 15 के तहत औपचारिक शिकायत दर्ज करें।"
+        ],
+        documentsEvidenceThatMayHelp: [
+          "नियुक्ति पत्र / रोजगार अनुबंध",
+          "वेतन पर्ची / बैंक स्टेटमेंट",
+          "काम पूरा होने का प्रमाण या ईमेल बातचीत"
+        ],
+        importantLimitations: "यह अधिनियम मुख्य रूप से एक निश्चित सीमा से कम वेतन पाने वाले कर्मचारियों पर लागू होता है।",
+        sources: sources.length ? [sources[0]] : [],
+        disclaimer: LEGAL_DISCLAIMER,
+        mode: "DEMO"
+      };
+    } else {
+      return {
+        whatWeUnderstand: "Your wages/salary remain unpaid or delayed by your employer, violating timely payment standards.",
+        informationThatMayApply: "Under the Payment of Wages Act, 1936, employers are obligated to pay all wages in cash, cheque, or bank transfer in a timely manner (by the 7th of the following month for establishments with < 1000 workers).",
+        why: "Section 7 strictly limits authorized deductions. Withholding salary due to arbitrary disputes is illegal. Workers are entitled to receive full wages along with compensation for delayed payments by submitting claims to the regional labour department.",
+        whatYouMayDoNext: [
+          "Send a written salary demand letter to your employer via registered post/email.",
+          "Gather employment details, appointment letters, salary slips, and attendance sheets.",
+          "Submit a formal complaint claim under Section 15 of the Act to the Labour Commissioner."
+        ],
+        documentsEvidenceThatMayHelp: [
+          "Employment Agreement / Appointment Letter",
+          "Salary Slips / Bank statements",
+          "Attendance records or emails showing work completed"
+        ],
+        importantLimitations: "This Act primarily covers employees drawing salary below specified statutory thresholds. Higher-earning executives may need to seek recovery via standard civil suit litigation or arbitration panels.",
         sources: sources.length ? [sources[0]] : [],
         disclaimer: LEGAL_DISCLAIMER,
         mode: "DEMO"
       };
     }
-
-    // Police Complaint Mock
-    if (input.includes('police') || input.includes('brutality') || input.includes('force') || input.includes('arrest') || input.includes('detained') || input.includes('cop') || input.includes('stopped') || input.includes('threatened')) {
-      return {
-        whatWeUnderstand: "You are reporting police misconduct, which may include the use of excessive physical force, threat/intimidation, or illegal detention.",
-        informationThatMayApply: "Under Supreme Court guidelines on police reforms and respective state Police Acts, citizens are protected against police abuse of authority. Independent Police Complaints Authorities (PCA) are mandated at the state and district levels to investigate serious misconduct.",
-        why: "A complaint can be filed before the PCA for grievances like custodial excess, grievous hurt, extortion, or abuse of power. CPGRAMS and departmental vigilance units also accept grievances. The complaint must contain specific officer details and supporting medical or media records.",
-        whatYouMayDoNext: [
-          "Record all incident details immediately, including date, time, officer names, belt numbers, and witness contacts.",
-          "Seek medical attention immediately and secure a Medico-Legal Case (MLC) report if physical force was used.",
-          "File a written complaint with the Police Complaints Authority (PCA) or submit a grievance on CPGRAMS."
-        ],
-        documentsEvidenceThatMayHelp: [
-          "Medico-Legal Case (MLC) Report / Hospital records",
-          "Photographs or video/audio recordings of the incident",
-          "Eyewitness statements",
-          "Copy of any arbitrary fine slips or seizure memos"
-        ],
-        importantLimitations: "The PCA operates as a disciplinary audit authority. It can recommend suspensions or departmental actions but cannot directly award financial damages or cancel formal criminal charges (FIRs), which requires petitioning the High Court.",
-        sources: sources.length ? [sources[0]] : [],
-        disclaimer: LEGAL_DISCLAIMER,
-        mode: "DEMO"
-      };
-    }
-
-    // Sanitation & Waste Mock
-    if (input.includes('garbage') || input.includes('waste') || input.includes('sanitation') || input.includes('rubbish')) {
-      return {
-        whatWeUnderstand: "You are reporting neglected municipal garbage collection or open waste dumping in your locality.",
-        informationThatMayApply: "Under the Solid Waste Management Rules, 2016, municipal authorities have a statutory duty to collect segregated waste daily, clear public street bins, and maintain clean public areas.",
-        why: "Solid Waste Management Rules, 2016 legally obligate urban local bodies to organize waste transport and disposal. If local collectors fail to clear rubbish, citizens can file digital complaints on the national Swachhata app or escalate to the Ward Sanitary Inspector.",
-        whatYouMayDoNext: [
-          "Take geotagged photos of the accumulated garbage or open dump.",
-          "Submit a digital complaint ticket on the Swachhata App or the municipal e-district portal.",
-          "Coordinate with the local Resident Welfare Association (RWA) to file a group petition with the Ward Health Inspector."
-        ],
-        documentsEvidenceThatMayHelp: [
-          "Photographs of waste accumulation with timestamp",
-          "Reference numbers of previous unanswered complaint tickets",
-          "Resident petition letters signed by neighbors"
-        ],
-        importantLimitations: "Municipal response times can vary depending on local budget allocations and outsourced contractor worker availability. Severe structural issues may require higher municipal health commissioner escalations.",
-        sources: sources.length ? [sources[0]] : [],
-        disclaimer: LEGAL_DISCLAIMER,
-        mode: "DEMO"
-      };
-    }
-
-    // Roads & Infrastructure Mock
-    if (input.includes('road') || input.includes('pothole') || input.includes('infrastructure') || input.includes('street') || input.includes('pavement')) {
-      return {
-        whatWeUnderstand: "You are reporting damaged roads, broken street pavements, or potholes causing safety hazards.",
-        informationThatMayApply: "Under PWD road manuals and municipal Citizens' Charters, local public works divisions are responsible for street safety and timely pothole repairs.",
-        why: "Municipalities and PWD are legally responsible for road maintenance. The citizens' charter states that reported pothole defects must be repaired within 48 to 72 hours. Photo grievances filed on municipal apps or written letters to the Executive Engineer are the primary action routes.",
-        whatYouMayDoNext: [
-          "Capture photos of the damaged road sections, highlighting the safety hazard to vehicles/pedestrians.",
-          "Register a grievance ticket on the local municipal corporation app or portal.",
-          "Draft and deliver a formal complaint notice to the Public Works Department (PWD) Executive Engineer."
-        ],
-        documentsEvidenceThatMayHelp: [
-          "Geotagged photos of potholes or broken pavements",
-          "Doctor's report/bill if the road defect caused a vehicle accident or injury",
-          "Standard written complaint draft with location coordinates"
-        ],
-        importantLimitations: "Arterial roads and neighborhood colony lanes fall under different jurisdictions (State PWD vs. Local Municipal Corporation). Sending the complaint to the wrong body can delay repairs.",
-        sources: sources.length ? [sources[0]] : [],
-        disclaimer: LEGAL_DISCLAIMER,
-        mode: "DEMO"
-      };
-    }
-
-    // Consumer Refund Mock
-    if (input.includes('refund') || input.includes('defective') || input.includes('seller') || input.includes('product') || input.includes('consumer') || input.includes('phone') || input.includes('phone online')) {
-      return {
-        whatWeUnderstand: "You purchased a product (like a phone) online, and the seller is refusing to issue a refund or replacement for a defective item.",
-        informationThatMayApply: "Under the Consumer Protection Act, 2019, citizens are protected against unfair trade practices and receiving defective goods. E-commerce platforms are mandated to resolve consumer grievances.",
-        why: "Section 2(47) defines refusing to take back defective goods or refund money within 30 days as an unfair trade practice. Consumers are entitled to seek relief by registering complaints on the National Consumer Helpline or filing petitions before the Consumer Commission.",
-        whatYouMayDoNext: [
-          "Call the National Consumer Helpline at 1915 or register an online complaint on the INGRAM portal.",
-          "Send a formal written notice to the e-commerce company's grievance officer demanding a refund within 7 days.",
-          "If unresolved, file an e-daakhil case before the District Consumer Disputes Redressal Commission."
-        ],
-        documentsEvidenceThatMayHelp: [
-          "Invoice / Purchase receipt",
-          "Photos/Video of the defective product",
-          "Chat logs, emails, or call records with customer support",
-          "Copy of the return policy terms"
-        ],
-        importantLimitations: "The Consumer Protection Act applies only if you bought the product for personal use. Commercial purchases are excluded and fall under general contract litigation.",
-        sources: sources.length ? [sources[0]] : [],
-        disclaimer: LEGAL_DISCLAIMER,
-        mode: "DEMO"
-      };
-    }
-
-    // Workplace Salary Mock (default fallback)
-    return {
-      whatWeUnderstand: "Your wages/salary remain unpaid or delayed by your employer, violating timely payment standards.",
-      informationThatMayApply: "Under the Payment of Wages Act, 1936, employers are obligated to pay all wages in cash, cheque, or bank transfer in a timely manner (by the 7th of the following month for establishments with < 1000 workers).",
-      why: "Section 7 strictly limits authorized deductions. Withholding salary due to arbitrary disputes is illegal. Workers are entitled to receive full wages along with compensation for delayed payments by submitting claims to the regional labour department.",
-      whatYouMayDoNext: [
-        "Send a written salary demand letter to your employer via registered post/email.",
-        "Gather employment details, appointment letters, salary slips, and attendance sheets.",
-        "Submit a formal complaint claim under Section 15 of the Act to the Labour Commissioner."
-      ],
-      documentsEvidenceThatMayHelp: [
-        "Employment Agreement / Appointment Letter",
-        "Salary Slips / Bank statements",
-        "Attendance records or emails showing work completed"
-      ],
-      importantLimitations: "This Act primarily covers employees drawing salary below specified statutory thresholds. Higher-earning executives may need to seek recovery via standard civil suit litigation or arbitration panels.",
-      sources: sources.length ? [sources[0]] : [],
-      disclaimer: LEGAL_DISCLAIMER,
-      mode: "DEMO"
-    };
   },
 
   draftRti: (text) => {

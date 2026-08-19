@@ -7,10 +7,388 @@ import {
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 
+const UI_TRANSLATIONS = {
+  en: {
+    title: "Civic Action Engine",
+    subtitle: "AI-Powered Civic & Legal Empowerment",
+    intakeHeader: "How Can We Help?",
+    intakePlaceholder: "Describe your civic issue or problem in natural language...",
+    submitBtn: "Analyze Issue",
+    analyzing: "Analyzing...",
+    landingBtn: "Access Engine Dashboard",
+    orChoosePath: "OR CHOOSE A PATH",
+    rightsNavigator: "Rights Navigator",
+    schemeEligibility: "Scheme Eligibility",
+    rtiDrafting: "RTI Drafting",
+    formFiller: "Form Assistant",
+    language: "Language",
+    readAloud: "Read Aloud",
+    pause: "Pause",
+    resume: "Resume",
+    stop: "Stop",
+    whatWeUnderstand: "What We Understand",
+    informationMayApply: "Information That May Apply",
+    whyThisMatters: "Why This Matters",
+    whatYouCanDo: "What You Can Do Next",
+    evidenceChecklist: "Evidence & Documents That Help",
+    limitations: "Important Limitations",
+    disclaimer: "Disclaimer",
+    safeFallbackTitle: "Supported Grounding Unavailable",
+    safeFallbackHelp: "How We Can Help:",
+    safeFallbackCannotVerify: "What We Cannot Verify Yet:",
+    safeFallbackWouldHelp: "What Details Would Help:",
+    sourcesTitle: "Verified Grounding Sources",
+    authorityLabel: "Authority / Organization",
+    originalExcerpt: "Original Source Excerpt",
+    explanationLabel: "AI Grounded Explanation",
+    whySourceMatters: "Why This Source Matters",
+    officialLink: "Official Reference URL",
+    readAloudSpeechWarning: "Read Aloud voice depends on browser and system settings.",
+    backToDashboard: "Back to Dashboard",
+    backBtn: "Back",
+    evidenceTitle: "Evidence Checklist",
+    historyTitle: "Recent Sessions History",
+    noHistory: "No recent sessions found.",
+    loadMore: "Load More",
+    delete: "Delete",
+    viewBtn: "View",
+    demoModeText: "DEMO MODE (Using local rule database)"
+  },
+  te: {
+    title: "సివిక్ యాక్షన్ ఇంజిన్",
+    subtitle: "ఏఐ-ఆధారిత పౌర మరియు చట్టపరమైన సాధికారత",
+    intakeHeader: "మేము మీకు ఎలా సహాయం చేయగలం?",
+    intakePlaceholder: "మీ పౌర సమస్య లేదా ఇబ్బందిని సాధారణ భాషలో వివరించండి...",
+    submitBtn: "సమస్యను విశ్లేషించు",
+    analyzing: "విశ్లేషిస్తోంది...",
+    landingBtn: "ఇంజిన్ డాష్‌బోర్డ్ ప్రవేశించండి",
+    orChoosePath: "లేదా ఒక మార్గాన్ని ఎంచుకోండి",
+    rightsNavigator: "హక్కుల నావిగేటర్",
+    schemeEligibility: "పథకాల అర్హత",
+    rtiDrafting: "RTI డ్రాఫ్టింగ్",
+    formFiller: "ఫారమ్ అసిస్టెంట్",
+    language: "భాష",
+    readAloud: "గట్టిగా చదవండి",
+    pause: "తాత్కాలికంగా ఆపు",
+    resume: "తిరిగి ప్రారంభించు",
+    stop: "ఆపు",
+    whatWeUnderstand: "మేము గ్రహించినది",
+    informationMayApply: "వర్తించే సమాచారం",
+    whyThisMatters: "ఇది ఎందుకు ముఖ్యం",
+    whatYouCanDo: "మీరు తదుపరి చేయవలసిన పనులు",
+    evidenceChecklist: "సహాయపడే ఆధారాలు & పత్రాలు",
+    limitations: "ముఖ్యమైన పరిమితులు",
+    disclaimer: "నిరాకరణ",
+    safeFallbackTitle: "మద్దతు ఉన్న ఆధారాలు అందుబాటులో లేవు",
+    safeFallbackHelp: "మేము సహాయపడగల విషయాలు:",
+    safeFallbackCannotVerify: "మేము ఇంకా ధృవీకరించలేనివి:",
+    safeFallbackWouldHelp: "ఏ వివరాలు సహాయపడతాయి:",
+    sourcesTitle: "ధృవీకరించబడిన మూల వనరులు",
+    authorityLabel: "అథారిటీ / సంస్థ",
+    originalExcerpt: "అసలు మూల భాగం",
+    explanationLabel: "ఏఐ ఆధారిత వివరణ",
+    whySourceMatters: "ఈ మూలం ఎందుకు ముఖ్యం",
+    officialLink: "అధికారిక సూచన URL",
+    readAloudSpeechWarning: "స్పీచ్ వాయిస్ బ్రౌజర్ మరియు సిస్టమ్ సెట్టింగ్‌లపై ఆధారపడి ఉంటుంది.",
+    backToDashboard: "డాష్‌బోర్డ్‌కు తిరిగి వెళ్ళు",
+    backBtn: "వెనుకకు",
+    evidenceTitle: "ఆధారాల చెక్‌లిస్ట్",
+    historyTitle: "ఇటీవలి సెషన్ల చరిత్ర",
+    noHistory: "ఇటీవలి సెషన్లు ఏవీ కనుగొనబడలేదు.",
+    loadMore: "మరింత లోడ్ చేయి",
+    delete: "తొలగించు",
+    viewBtn: "చూడండి",
+    demoModeText: "డెమో మోడ్ (స్థానిక నియమ డేటాబేస్ ఉపయోగించబడుతోంది)"
+  },
+  hi: {
+    title: "सिविक एक्शन इंजन",
+    subtitle: "एआई-संचालित नागरिक और कानूनी सशक्तिकरण",
+    intakeHeader: "हम आपकी क्या सहायता कर सकते हैं?",
+    intakePlaceholder: "अपनी नागरिक समस्या या कठिनाई का सामान्य भाषा में वर्णन करें...",
+    submitBtn: "समस्या का विश्लेषण करें",
+    analyzing: "विश्लेषण किया जा रहा है...",
+    landingBtn: "इंजन डैशबोर्ड तक पहुंचें",
+    orChoosePath: "या एक मार्ग चुनें",
+    rightsNavigator: "अधिकार नेविगेटर",
+    schemeEligibility: "योजना पात्रता",
+    rtiDrafting: "आरटीआई ड्राफ्टिंग",
+    formFiller: "फॉर्म सहायक",
+    language: "भाषा",
+    readAloud: "ज़ोर से पढ़ें",
+    pause: "पॉज़ करें",
+    resume: "फिर से शुरू करें",
+    stop: "रोकें",
+    whatWeUnderstand: "हमारी समझ",
+    informationMayApply: "लागू होने वाली जानकारी",
+    whyThisMatters: "यह क्यों महत्वपूर्ण है",
+    whatYouCanDo: "आप आगे क्या कर सकते हैं",
+    evidenceChecklist: "सहायक साक्ष्य और दस्तावेज",
+    limitations: "महत्वपूर्ण सीमाएं",
+    disclaimer: "अस्वीकरण",
+    safeFallbackTitle: "समर्थित ग्राउंडिंग अनुपलब्ध",
+    safeFallbackHelp: "हम कैसे सहायता कर सकते हैं:",
+    safeFallbackCannotVerify: "हम अभी क्या सत्यापित नहीं कर सकते:",
+    safeFallbackWouldHelp: "कौन से विवरण सहायक होंगे:",
+    sourcesTitle: "सत्यापित ग्राउंडिंग स्रोत",
+    authorityLabel: "प्राधिकरण / संगठन",
+    originalExcerpt: "मूल स्रोत अंश",
+    explanationLabel: "एआई ग्राउंडेड स्पष्टीकरण",
+    whySourceMatters: "यह स्रोत क्यों महत्वपूर्ण है",
+    officialLink: "आधिकारिक संदर्भ URL",
+    readAloudSpeechWarning: "स्पीच आवाज़ ब्राउज़र और सिस्टम सेटिंग्स पर निर्भर करती है।",
+    backToDashboard: "डैशबोर्ड पर वापस जाएं",
+    backBtn: "पीछे",
+    evidenceTitle: "साक्ष्य चेकलिस्ट",
+    historyTitle: "हाल के सत्रों का इतिहास",
+    noHistory: "कोई हालिया सत्र नहीं मिला।",
+    loadMore: "और लोड करें",
+    delete: "हटाएं",
+    viewBtn: "देखें",
+    demoModeText: "डेमो मोड (స్థానిక నియమ డేటాబేస్ ఉపయోగించబడుతోంది)"
+  }
+};
+
+const EXEMPLARS = {
+  en: [
+    { tag: "TENANT DISPUTE", text: "My landlord hasn't returned my deposit." },
+    { tag: "EMPLOYEE GRIEVANCE", text: "My employer hasn't paid my salary." },
+    { tag: "POLICE MISCONDUCT", text: "Police used excessive force against my brother." },
+    { tag: "CIVIC SANITATION", text: "Garbage hasn't been collected for weeks." },
+    { tag: "RTI INFORMATION", text: "I want to know how much was spent repairing a road." },
+    { tag: "WELFARE SCHEME", text: "Can I qualify for a scholarship?" }
+  ],
+  te: [
+    { tag: "అద్దెదారుల వివాదం", text: "నా భూస్వామి నా డిపాజిట్ తిరిగి ఇవ్వడం లేదు." },
+    { tag: "ఉద్యోగుల సమస్య", text: "నా యజమాని నాకు జీతం ఇవ్వలేదు." },
+    { tag: "పోలీసుల దౌర్జన్యం", text: "పోలీసులు నా సోదరుడిపై అధిక బలాన్ని ఉపయోగించారు." },
+    { tag: "పరిశుభ్రత సమస్య", text: "వారాలుగా చెత్త సేకరించడం లేదు." },
+    { tag: "RTI సమాచారం", text: "రహదారి మరమ్మతు కోసం ఎంత ఖర్చు చేశారో నేను తెలుసుకోవాలనుకుంటున్నాను." },
+    { tag: "ప్రభుత్వ పథకాలు", text: "నేను స్కాలర్‌షిప్‌కు అర్హుడినా?" }
+  ],
+  hi: [
+    { tag: "किरायेदार विवाद", text: "मेरे मकान मालिक ने मेरी सुरक्षा जमा राशि वापस नहीं की है।" },
+    { tag: "कर्मचारी शिकायत", text: "मेरे नियोक्ता ने मुझे वेतन नहीं दिया है।" },
+    { tag: "पुलिस दुर्व्यवहार", text: "पुलिस ने मेरे भाई के खिलाफ अत्यधिक बल का प्रयोग किया।" },
+    { tag: "स्वच्छता शिकायत", text: "हफ्तों से कचरा जमा है और साफ नहीं किया गया।" },
+    { tag: "आरटीआई सूचना", text: "मैं जानना चाहता हूँ कि सड़क मरम्मत पर कितना खर्च हुआ।" },
+    { tag: "कल्याणकारी योजना", text: "क्या मैं छात्रवृत्ति के लिए पात्र हूँ?" }
+  ]
+};
+
+const CLARIFICATION_TRANSLATIONS = {
+  en: {
+    police: {
+      step1: {
+        q: "What specific action occurred during the incident?",
+        opts: ["Excessive physical force", "Threat / intimidation", "Detention / arrest", "Property damage", "Other"]
+      },
+      step2: {
+        q: "Where did this incident occur?",
+        opts: ["Inside a police station", "During arrest / transfer", "Public street or open place", "Other location"]
+      },
+      step3: {
+        q: "Do you have physical documentation, photos, or medical receipts?",
+        opts: ["Yes, physical medical/video evidence", "No, only personal witness testimony", "Not sure what to collect"]
+      }
+    },
+    wage: {
+      step1: {
+        q: "What is the core workplace dispute?",
+        opts: ["Unpaid wages / salary delay", "Arbitrary termination", "Workplace harassment", "Unsafe working conditions", "Other dispute"]
+      }
+    },
+    general: {
+      step1: {
+        q: "Could you select the closest sub-topic for your dispute?",
+        opts: ["General service delay", "Billing / financial discrepancy", "Unfair treatment / denial of service", "Other specific matter"]
+      }
+    },
+    header: "We detected your situation relates to:",
+    original: "Original Query:"
+  },
+  te: {
+    police: {
+      step1: {
+        q: "సంఘటన సమయంలో ఖచ్చితంగా ఏం జరిగింది?",
+        opts: ["అధిక శారీరక బలాన్ని ఉపయోగించడం", "బెదిరింపులు / దౌర్జన్యం", "అక్రమ నిర్బంధం / అరెస్టు", "ఆస్తి నష్టం", "ఇతర విషయాలు"]
+      },
+      step2: {
+        q: "ఈ సంఘటన ఎక్కడ జరిగింది?",
+        opts: ["పోలీస్ స్టేషన్ లోపల", "అరెస్టు / బదిలీ సమయంలో", "పబ్లిక్ వీధి లేదా బహిరంగ ప్రదేశం", "ఇతర ప్రదేశం"]
+      },
+      step3: {
+        q: "మీ వద్ద వైద్య నివేదికలు, ఫోటోలు లేదా ఇతర ఆధారాలు ఉన్నాయా?",
+        opts: ["అవును, వైద్య నివేదికలు/వీడియో ఆధారాలు ఉన్నాయి", "లేదు, కేవలం వ్యక్తిగత సాక్ష్యం మాత్రమే", "ఏం సేకరించాలో ఖచ్చితంగా తెలియదు"]
+      }
+    },
+    wage: {
+      step1: {
+        q: "పనిప్రదేశంలో ప్రధాన వివాదం ఏమిటి?",
+        opts: ["జీతం చెల్లించకపోవడం / ఆలస్యం", "అక్రమంగా తొలగించడం", "వేధింపులు", "అసురక్షిత పని పరిస్థితులు", "ఇతర వివాదాలు"]
+      }
+    },
+    general: {
+      step1: {
+        q: "దయచేసి మీ వివాదానికి సంబంధించిన సరైన విషయాన్ని ఎంచుకోండి:",
+        opts: ["సాధారణ సేవా ఆలస్యం", "బిల్లింగ్ / ఆర్థిక వ్యత్యాసం", "అన్యాయమైన ప్రవర్తన / సేవ నిరాకరణ", "ఇతర నిర్దిష్ట విషయం"]
+      }
+    },
+    header: "మేము మీ పరిస్థితిని దీనికి సంబంధించినదిగా గుర్తించాము:",
+    original: "అసలు ప్రశ్న:"
+  },
+  hi: {
+    police: {
+      step1: {
+        q: "घटना के दौरान विशेष रूप से क्या हुआ?",
+        opts: ["अत्यधिक शारीरिक बल का प्रयोग", "धमकी / उत्पीड़न", "अवैध हिरासत / गिरफ्तारी", "संपत्ति की क्षति", "अन्य"]
+      },
+      step2: {
+        q: "यह घटना कहाँ हुई?",
+        opts: ["पुलिस स्टेशन के भीतर", "गिरफ्तारी / स्थानांतरण के दौरान", "सार्वजनिक सड़क या खुला स्थान", "अन्य स्थान"]
+      },
+      step3: {
+        q: "क्या आपके पास चिकित्सा रिपोर्ट, तस्वीरें या अन्य सबूत हैं?",
+        opts: ["हाँ, चिकित्सा रिपोर्ट/वीडियो साक्ष्य उपलब्ध हैं", "नहीं, केवल व्यक्तिगत गवाही", "निश्चित नहीं कि क्या एकत्र किया जाए"]
+      }
+    },
+    wage: {
+      step1: {
+        q: "कार्यस्थल पर मुख्य विवाद क्या है?",
+        opts: ["वेतन का भुगतान न होना / देरी", "अवैध बर्खास्तगी", "कार्यस्थल पर उत्पीड़न", "असुरक्षित कार्य परिस्थितियां", "अन्य विवाद"]
+      }
+    },
+    general: {
+      step1: {
+        q: "कृपया अपने विवाद का सबसे करीबी उप-विषय चुनें:",
+        opts: ["सामान्य सेवा में देरी", "बिलिंग / वित्तीय विसंगति", "अनुचित व्यवहार / सेवा से इनकार", "अन्य विशिष्ट मामला"]
+      }
+    },
+    header: "हमने आपकी स्थिति का पता लगाया है जो इससे संबंधित है:",
+    original: "मूल प्रश्न:"
+  }
+};
+
 export default function App() {
-  // Navigation State: 'landing' | 'dashboard'
   const [currentScreen, setCurrentScreen] = useState('landing');
-  const [activeModule, setActiveModule] = useState('intake'); // 'intake' | 'rights' | 'scheme' | 'rti' | 'form' | 'clarification'
+  const [activeModule, setActiveModule] = useState('intake');
+  const [lang, setLang] = useState('en');
+  const [speechState, setSpeechState] = useState('stopped');
+  const [speechUtterance, setSpeechUtterance] = useState(null);
+
+  useEffect(() => {
+    window.speechSynthesis.cancel();
+    setSpeechState('stopped');
+  }, [lang, activeModule, currentScreen]);
+
+  const changeLanguage = (newLang) => {
+    setLang(newLang);
+    if (rightsResult) {
+      const promptToReanalyze = rightsResult.prompt || rightsInput;
+      if (promptToReanalyze) {
+        executeRightsAnalysis(promptToReanalyze, newLang);
+      }
+    }
+  };
+
+  const resetDemo = () => {
+    window.speechSynthesis.cancel();
+    setSpeechState('stopped');
+    setSpeechUtterance(null);
+    setIntakeInput('');
+    setRightsInput('');
+    setRtiInput('');
+    setFormInput('');
+    setRightsResult(null);
+    setSchemeResult(null);
+    setRtiResult(null);
+    setFormDraftText('');
+    setFormSessionId(null);
+    setClarificationTarget(null);
+    setSchemeStep(0);
+    setFormStatus('IDLE');
+    setFormAnswers({});
+    setCurrentScreen('landing');
+    setActiveModule('intake');
+    setLang('en');
+  };
+
+  const handleReadAloud = (result) => {
+    if (!result || !result.response) return;
+    window.speechSynthesis.cancel();
+    
+    const t = UI_TRANSLATIONS[lang] || UI_TRANSLATIONS.en;
+    const speechParts = [];
+    
+    if (result.status === 'UNSUPPORTED_FALLBACK') {
+      if (result.response.whatWeUnderstand) {
+        speechParts.push(result.response.whatWeUnderstand);
+      }
+      if (result.response.whatWeCanHelpWith) {
+        speechParts.push(`${t.safeFallbackHelp} ${result.response.whatWeCanHelpWith}`);
+      }
+      if (result.response.whatWeCannotVerifyYet) {
+        speechParts.push(`${t.safeFallbackCannotVerify} ${result.response.whatWeCannotVerifyYet}`);
+      }
+      if (result.response.whatWouldHelp && result.response.whatWouldHelp.length) {
+        speechParts.push(`${t.safeFallbackWouldHelp} ` + result.response.whatWouldHelp.join(". "));
+      }
+    } else {
+      if (result.response.whatWeUnderstand) {
+        speechParts.push(`${t.whatWeUnderstand}: ${result.response.whatWeUnderstand}`);
+      }
+      if (result.response.informationThatMayApply) {
+        speechParts.push(`${t.informationMayApply}: ${result.response.informationThatMayApply}`);
+      }
+      if (result.response.whatYouMayDoNext && result.response.whatYouMayDoNext.length) {
+        speechParts.push(`${t.whatYouCanDo}: ` + result.response.whatYouMayDoNext.join(". "));
+      }
+      if (result.response.importantLimitations) {
+        speechParts.push(`${t.limitations}: ${result.response.importantLimitations}`);
+      }
+    }
+
+    const textToSpeak = speechParts.join(". ");
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    const voices = window.speechSynthesis.getVoices();
+    let matchingVoice = null;
+    
+    if (lang === 'te') {
+      matchingVoice = voices.find(v => v.lang.includes('te-IN')) || voices.find(v => v.lang.toLowerCase().includes('te'));
+      utterance.lang = 'te-IN';
+    } else if (lang === 'hi') {
+      matchingVoice = voices.find(v => v.lang.includes('hi-IN')) || voices.find(v => v.lang.toLowerCase().includes('hi'));
+      utterance.lang = 'hi-IN';
+    } else {
+      matchingVoice = voices.find(v => v.lang.includes('en-IN')) || voices.find(v => v.lang.includes('en-US')) || voices.find(v => v.lang.includes('en-GB'));
+      utterance.lang = 'en-US';
+    }
+    
+    if (matchingVoice) {
+      utterance.voice = matchingVoice;
+    }
+    
+    utterance.onend = () => setSpeechState('stopped');
+    utterance.onerror = () => setSpeechState('stopped');
+    
+    setSpeechUtterance(utterance);
+    setSpeechState('playing');
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handlePauseSpeech = () => {
+    window.speechSynthesis.pause();
+    setSpeechState('paused');
+  };
+
+  const handleResumeSpeech = () => {
+    window.speechSynthesis.resume();
+    setSpeechState('playing');
+  };
+
+  const handleStopSpeech = () => {
+    window.speechSynthesis.cancel();
+    setSpeechState('stopped');
+  };
   
   // App-wide Status Info
   const [appStatus, setAppStatus] = useState({ hasKey: false, checked: false });
@@ -181,7 +559,7 @@ export default function App() {
       const res = await fetch('/api/route', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: intakeInput })
+        body: JSON.stringify({ text: intakeInput, lang })
       });
       const data = await res.json();
       
@@ -227,7 +605,7 @@ export default function App() {
   };
 
   // 2. Rights Navigator execution
-  const executeRightsAnalysis = async (inputText) => {
+  const executeRightsAnalysis = async (inputText, overrideLang) => {
     const textToAnalyze = inputText || rightsInput;
     if (!textToAnalyze.trim()) return;
 
@@ -235,11 +613,13 @@ export default function App() {
     setRightsError('');
     setRightsResult(null);
 
+    const targetLang = overrideLang || lang;
+
     try {
       const res = await fetch('/api/rights/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: textToAnalyze })
+        body: JSON.stringify({ text: textToAnalyze, lang: targetLang })
       });
       const data = await res.json();
       
@@ -488,6 +868,44 @@ export default function App() {
           </button>
           
           <div className="flex items-center space-x-4">
+            <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5" role="group" aria-label="Select Language">
+              <button
+                onClick={() => changeLanguage('en')}
+                aria-pressed={lang === 'en'}
+                className={`px-2.5 py-1 text-xs font-extrabold rounded-md transition-all focus-visible:ring-2 focus-visible:ring-indigo-900 focus-visible:outline-hidden ${
+                  lang === 'en' ? 'bg-indigo-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                English
+              </button>
+              <button
+                onClick={() => changeLanguage('te')}
+                aria-pressed={lang === 'te'}
+                className={`px-2.5 py-1 text-xs font-extrabold rounded-md transition-all focus-visible:ring-2 focus-visible:ring-indigo-900 focus-visible:outline-hidden ${
+                  lang === 'te' ? 'bg-indigo-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                తెలుగు
+              </button>
+              <button
+                onClick={() => changeLanguage('hi')}
+                aria-pressed={lang === 'hi'}
+                className={`px-2.5 py-1 text-xs font-extrabold rounded-md transition-all focus-visible:ring-2 focus-visible:ring-indigo-900 focus-visible:outline-hidden ${
+                  lang === 'hi' ? 'bg-indigo-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                हिन्दी
+              </button>
+            </div>
+
+            <button
+              onClick={resetDemo}
+              className="px-2.5 py-1.5 bg-rose-55 hover:bg-rose-100 text-rose-700 text-xs font-black rounded-lg border border-rose-200 transition-all flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-rose-500 cursor-pointer"
+              title="Reset application to landing state"
+            >
+              <span>🔄 Reset</span>
+            </button>
+
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
               appStatus.hasKey ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
             }`}>
@@ -751,22 +1169,32 @@ export default function App() {
             
             {/* INTAKE ROUTER */}
             {activeModule === 'intake' && (
-              <div className="max-w-3xl mx-auto">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-extrabold text-slate-805 tracking-tight">HOW CAN WE HELP?</h2>
-                  <p className="text-sm text-slate-600 mt-2">
-                    Describe your civic problem or what you're trying to accomplish in natural language.
+              <div className="max-w-3xl mx-auto space-y-8">
+                <div className="text-center space-y-3">
+                  <h1 className="text-4xl font-black text-indigo-950 tracking-tight">
+                    {lang === 'te' ? 'సివిక్ యాక్షన్ ఇంజిన్' : lang === 'hi' ? 'सिविक एक्शन इंजन' : 'CIVIC ACTION ENGINE'}
+                  </h1>
+                  <p className="text-sm text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                    {lang === 'te' 
+                      ? "మీ పౌర సమస్యను మీ స్వంత మాటలలో వివరించండి. ఏ నిబంధనలు వర్తిస్తాయో అర్థం చేసుకోవడానికి, అందుబాటులో ఉన్న వనరులను ధృవీకరించడానికి మరియు ఆచరణాత్మక తదుపరి దశలను గుర్తించడానికి మేము మీకు సహాయం చేస్తాము."
+                      : lang === 'hi'
+                      ? "अपनी नागरिक समस्या का अपने शब्दों में वर्णन करें। हम आपको यह समझने में मदद करेंगे कि क्या लागू हो सकता है, उपलब्ध स्रोतों को सत्यापित करेंगे, और व्यावहारिक अगले कदमों की पहचान करेंगे।"
+                      : "Describe a civic problem in your own words. We'll help you understand what may apply, verify the available sources, and identify practical next steps."}
                   </p>
                 </div>
 
                 <form onSubmit={handleIntakeSubmit} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                   <div>
+                    <label htmlFor="intake-textarea" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                      {UI_TRANSLATIONS[lang].intakeHeader}
+                    </label>
                     <textarea 
+                      id="intake-textarea"
                       value={intakeInput}
                       onChange={(e) => setIntakeInput(e.target.value)}
-                      placeholder="Type your situation here (e.g. My landlord refuses to return my security deposit, or Police used excessive force...)"
+                      placeholder={UI_TRANSLATIONS[lang].intakePlaceholder}
                       rows={4}
-                      className="w-full p-4 border border-slate-300 rounded-lg text-sm focus:ring-indigo-900 focus:border-indigo-900 shadow-inner resize-none"
+                      className="w-full p-4 border border-slate-300 rounded-lg text-sm focus:ring-indigo-900 focus:border-indigo-900 shadow-inner resize-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-900"
                     ></textarea>
                   </div>
 
@@ -777,20 +1205,22 @@ export default function App() {
                   )}
 
                   <div className="flex justify-between items-center">
-                    <span className="text-[11px] text-slate-505">Answers are mapped to verified taxonomy sources.</span>
+                    <span className="text-[11px] text-slate-505">
+                      {lang === 'te' ? 'సమాధానాలు ధృవీకరించబడిన మూలాలకు మ్యాప్ చేయబడతాయి.' : lang === 'hi' ? 'उत्तरों को सत्यापित स्रोतों से मैप किया गया है।' : "Answers are mapped to verified taxonomy sources."}
+                    </span>
                     <button 
                       type="submit" 
                       disabled={intakeLoading || !intakeInput.trim()}
-                      className="bg-indigo-900 hover:bg-opacity-95 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-xs flex items-center space-x-2 transition-all disabled:opacity-50"
+                      className="bg-indigo-900 hover:bg-opacity-95 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-xs flex items-center space-x-2 transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-900"
                     >
                       {intakeLoading ? (
                         <>
                           <RefreshCw className="h-4 w-4 animate-spin" />
-                          <span>Routing...</span>
+                          <span>{UI_TRANSLATIONS[lang].analyzing}</span>
                         </>
                       ) : (
                         <>
-                          <span>Continue</span>
+                          <span>{UI_TRANSLATIONS[lang].submitBtn}</span>
                           <ArrowRight className="h-4 w-4" />
                         </>
                       )}
@@ -800,107 +1230,56 @@ export default function App() {
 
                 {/* CLICKABLE EXEMPLARS */}
                 <div className="mt-8">
-                  <h4 className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-wider">Example Citizen Situations</h4>
+                  <h4 className="text-xs font-bold text-slate-550 mb-4 uppercase tracking-wider">
+                    {lang === 'te' ? 'ఉదాహరణ పౌర సమస్యలు' : lang === 'hi' ? 'उदाहरण नागरिक समस्याएं' : 'Example Citizen Situations'}
+                  </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    
-                    <button 
-                      onClick={() => handleQuickPrompt("Police used excessive force during an incident.")}
-                      className="bg-white p-3.5 rounded-xl border border-slate-200 text-left hover:border-indigo-900 transition-all hover:bg-slate-50/50"
-                    >
-                      <span className="font-bold text-[10px] text-slate-400 block mb-1">POLICE MISCONDUCT</span>
-                      <p className="text-xs font-semibold text-slate-700">"Police used excessive force during an incident."</p>
-                    </button>
-
-                    <button 
-                      onClick={() => handleQuickPrompt("My employer hasn't paid my salary.")}
-                      className="bg-white p-3.5 rounded-xl border border-slate-200 text-left hover:border-indigo-900 transition-all hover:bg-slate-50/50"
-                    >
-                      <span className="font-bold text-[10px] text-slate-400 block mb-1">EMPLOYEE GRIEVANCE</span>
-                      <p className="text-xs font-semibold text-slate-700">"My employer hasn't paid my salary."</p>
-                    </button>
-
-                    <button 
-                      onClick={() => handleQuickPrompt("My landlord hasn't returned my deposit.")}
-                      className="bg-white p-3.5 rounded-xl border border-slate-200 text-left hover:border-indigo-900 transition-all hover:bg-slate-50/50"
-                    >
-                      <span className="font-bold text-[10px] text-slate-400 block mb-1">TENANT DISPUTE</span>
-                      <p className="text-xs font-semibold text-slate-700">"My landlord hasn't returned my deposit."</p>
-                    </button>
-
-                    <button 
-                      onClick={() => handleQuickPrompt("I bought a phone online and the seller refuses to refund me.")}
-                      className="bg-white p-3.5 rounded-xl border border-slate-200 text-left hover:border-indigo-900 transition-all hover:bg-slate-50/50"
-                    >
-                      <span className="font-bold text-[10px] text-slate-400 block mb-1">CONSUMER COMPLAINT</span>
-                      <p className="text-xs font-semibold text-slate-700">"Seller refuses to refund my defective phone."</p>
-                    </button>
-
-                    <button 
-                      onClick={() => handleQuickPrompt("Garbage has not been collected in my area.")}
-                      className="bg-white p-3.5 rounded-xl border border-slate-200 text-left hover:border-indigo-900 transition-all hover:bg-slate-50/50"
-                    >
-                      <span className="font-bold text-[10px] text-slate-400 block mb-1">CIVIC SANITATION</span>
-                      <p className="text-xs font-semibold text-slate-700">"Garbage has not been collected in my area."</p>
-                    </button>
-
-                    <button 
-                      onClick={() => handleQuickPrompt("I want to know how much was spent on road construction.")}
-                      className="bg-white p-3.5 rounded-xl border border-slate-200 text-left hover:border-indigo-900 transition-all hover:bg-slate-50/50"
-                    >
-                      <span className="font-bold text-[10px] text-slate-400 block mb-1">RTI INFORMATION</span>
-                      <p className="text-xs font-semibold text-slate-700">"Check municipal funds spent on road repair."</p>
-                    </button>
-
-                    <button 
-                      onClick={() => handleQuickPrompt("Can I qualify for a supported government scholarship?")}
-                      className="bg-white p-3.5 rounded-xl border border-slate-200 text-left hover:border-indigo-900 transition-all hover:bg-slate-50/50"
-                    >
-                      <span className="font-bold text-[10px] text-slate-400 block mb-1">WELFARE SCHEME</span>
-                      <p className="text-xs font-semibold text-slate-700">"Can I qualify for scholarship schemes?"</p>
-                    </button>
-
-                    <button 
-                      onClick={() => handleQuickPrompt("I need help completing an application form.")}
-                      className="bg-white p-3.5 rounded-xl border border-slate-200 text-left hover:border-indigo-900 transition-all hover:bg-slate-50/50"
-                    >
-                      <span className="font-bold text-[10px] text-slate-400 block mb-1">FORM ASSISTANCE</span>
-                      <p className="text-xs font-semibold text-slate-700">"Complete application for Income Certificate."</p>
-                    </button>
-
+                    {EXEMPLARS[lang].map((item, idx) => (
+                      <button 
+                        key={idx}
+                        onClick={() => handleQuickPrompt(item.text)}
+                        className="bg-white p-3.5 rounded-xl border border-slate-200 text-left hover:border-indigo-900 transition-all hover:bg-slate-50/50 focus-visible:ring-2 focus-visible:ring-indigo-900"
+                      >
+                        <span className="font-bold text-[10px] text-slate-400 block mb-1 uppercase">{item.tag}</span>
+                        <p className="text-xs font-semibold text-slate-700">"{item.text}"</p>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
                 {/* DIRECT WORKFLOW PATHS */}
                 <div className="mt-8 border-t border-slate-200 pt-6">
-                  <h4 className="text-xs font-bold text-slate-505 mb-4 text-center uppercase tracking-wider">Or Choose a Structured Path</h4>
+                  <h4 className="text-xs font-bold text-slate-505 mb-4 text-center uppercase tracking-wider">
+                    {UI_TRANSLATIONS[lang].orChoosePath}
+                  </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <button 
                       onClick={() => { setActiveModule('rights'); setRightsInput(''); setRightsResult(null); }}
-                      className="bg-slate-100 hover:bg-slate-200 text-slate-800 p-3 rounded-lg text-xs font-bold transition-all text-center flex flex-col items-center gap-1.5"
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-800 p-3 rounded-lg text-xs font-bold transition-all text-center flex flex-col items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-900"
                     >
                       <Compass className="h-4 w-4 text-indigo-900" />
-                      <span>Rights</span>
+                      <span>{UI_TRANSLATIONS[lang].rightsNavigator}</span>
                     </button>
                     <button 
                       onClick={() => { setActiveModule('scheme'); setSchemeStep(0); setSchemeResult(null); }}
-                      className="bg-slate-100 hover:bg-slate-200 text-slate-800 p-3 rounded-lg text-xs font-bold transition-all text-center flex flex-col items-center gap-1.5"
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-800 p-3 rounded-lg text-xs font-bold transition-all text-center flex flex-col items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-900"
                     >
                       <CheckCircle2 className="h-4 w-4 text-teal-650" />
-                      <span>Schemes</span>
+                      <span>{UI_TRANSLATIONS[lang].schemeEligibility}</span>
                     </button>
                     <button 
                       onClick={() => { setActiveModule('rti'); setRtiInput(''); setRtiResult(null); }}
-                      className="bg-slate-100 hover:bg-slate-200 text-slate-800 p-3 rounded-lg text-xs font-bold transition-all text-center flex flex-col items-center gap-1.5"
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-800 p-3 rounded-lg text-xs font-bold transition-all text-center flex flex-col items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-900"
                     >
                       <FileText className="h-4 w-4 text-amber-500" />
-                      <span>RTI Draft</span>
+                      <span>{UI_TRANSLATIONS[lang].rtiDrafting}</span>
                     </button>
                     <button 
                       onClick={() => { setActiveModule('form'); startFormSession(); }}
-                      className="bg-slate-100 hover:bg-slate-200 text-slate-800 p-3 rounded-lg text-xs font-bold transition-all text-center flex flex-col items-center gap-1.5"
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-800 p-3 rounded-lg text-xs font-bold transition-all text-center flex flex-col items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-900"
                     >
                       <ListTodo className="h-4 w-4 text-purple-650" />
-                      <span>Forms</span>
+                      <span>{UI_TRANSLATIONS[lang].formFiller}</span>
                     </button>
                   </div>
                 </div>
@@ -914,10 +1293,10 @@ export default function App() {
                 <div className="bg-slate-900 text-white p-6">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-1">Clarification Engine</span>
                   <h3 className="text-md font-bold leading-normal">
-                    We detected your situation relates to: <span className="text-teal-400 font-extrabold">{clarificationTarget.category}</span>
+                    {CLARIFICATION_TRANSLATIONS[lang].header} <span className="text-teal-400 font-extrabold">{clarificationTarget.category}</span>
                   </h3>
                   <p className="text-xs text-slate-400 mt-2 italic">
-                    "Original Query: {clarificationTarget.originalQuery}"
+                    "{CLARIFICATION_TRANSLATIONS[lang].original} {clarificationTarget.originalQuery}"
                   </p>
                 </div>
 
@@ -933,13 +1312,15 @@ export default function App() {
 
                       {clarificationTarget.step === 1 && (
                         <div className="space-y-4">
-                          <h4 className="text-sm font-bold text-slate-700">What specific action occurred during the incident?</h4>
+                          <h4 className="text-sm font-bold text-slate-700">
+                            {CLARIFICATION_TRANSLATIONS[lang].police.step1.q}
+                          </h4>
                           <div className="flex flex-col gap-2">
-                            {["Excessive physical force", "Threat / intimidation", "Detention / arrest", "Property damage", "Other"].map(opt => (
+                            {CLARIFICATION_TRANSLATIONS[lang].police.step1.opts.map((opt, idx) => (
                               <button 
-                                key={opt}
-                                onClick={() => handleClarificationChoice(opt)}
-                                className="w-full text-left p-3 rounded-lg border border-slate-250 hover:border-indigo-900 hover:bg-slate-50 text-xs font-semibold transition-all"
+                                key={idx}
+                                onClick={() => handleClarificationChoice(CLARIFICATION_TRANSLATIONS.en.police.step1.opts[idx])}
+                                className="w-full text-left p-3 rounded-lg border border-slate-250 hover:border-indigo-900 hover:bg-slate-50 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-900 focus-visible:outline-hidden"
                               >
                                 {opt}
                               </button>
@@ -950,13 +1331,15 @@ export default function App() {
 
                       {clarificationTarget.step === 2 && (
                         <div className="space-y-4">
-                          <h4 className="text-sm font-bold text-slate-700">Where did this incident occur?</h4>
+                          <h4 className="text-sm font-bold text-slate-700">
+                            {CLARIFICATION_TRANSLATIONS[lang].police.step2.q}
+                          </h4>
                           <div className="flex flex-col gap-2">
-                            {["Inside a police station", "During arrest / transfer", "Public street or open place", "Other location"].map(opt => (
+                            {CLARIFICATION_TRANSLATIONS[lang].police.step2.opts.map((opt, idx) => (
                               <button 
-                                key={opt}
-                                onClick={() => handleClarificationChoice(opt)}
-                                className="w-full text-left p-3 rounded-lg border border-slate-250 hover:border-indigo-900 hover:bg-slate-50 text-xs font-semibold transition-all"
+                                key={idx}
+                                onClick={() => handleClarificationChoice(CLARIFICATION_TRANSLATIONS.en.police.step2.opts[idx])}
+                                className="w-full text-left p-3 rounded-lg border border-slate-250 hover:border-indigo-900 hover:bg-slate-50 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-900 focus-visible:outline-hidden"
                               >
                                 {opt}
                               </button>
@@ -967,13 +1350,15 @@ export default function App() {
 
                       {clarificationTarget.step === 3 && (
                         <div className="space-y-4">
-                          <h4 className="text-sm font-bold text-slate-700">Do you have physical documentation, photos, or medical receipts?</h4>
+                          <h4 className="text-sm font-bold text-slate-700">
+                            {CLARIFICATION_TRANSLATIONS[lang].police.step3.q}
+                          </h4>
                           <div className="flex flex-col gap-2">
-                            {["Yes, physical medical/video evidence", "No, only personal witness testimony", "Not sure what to collect"].map(opt => (
+                            {CLARIFICATION_TRANSLATIONS[lang].police.step3.opts.map((opt, idx) => (
                               <button 
-                                key={opt}
-                                onClick={() => handleClarificationChoice(opt)}
-                                className="w-full text-left p-3 rounded-lg border border-slate-250 hover:border-indigo-900 hover:bg-slate-50 text-xs font-semibold transition-all"
+                                key={idx}
+                                onClick={() => handleClarificationChoice(CLARIFICATION_TRANSLATIONS.en.police.step3.opts[idx])}
+                                className="w-full text-left p-3 rounded-lg border border-slate-250 hover:border-indigo-900 hover:bg-slate-50 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-900 focus-visible:outline-hidden"
                               >
                                 {opt}
                               </button>
@@ -987,13 +1372,15 @@ export default function App() {
                   {/* Employment/Wage dispute (1 Step) */}
                   {clarificationTarget.category === 'Employment / Wage' && (
                     <div className="space-y-4">
-                      <h4 className="text-sm font-bold text-slate-700">What is the core workplace dispute?</h4>
+                      <h4 className="text-sm font-bold text-slate-700">
+                        {CLARIFICATION_TRANSLATIONS[lang].wage.step1.q}
+                      </h4>
                       <div className="flex flex-col gap-2">
-                        {["Unpaid wages / salary delay", "Arbitrary termination", "Workplace harassment", "Unsafe working conditions", "Other dispute"].map(opt => (
+                        {CLARIFICATION_TRANSLATIONS[lang].wage.step1.opts.map((opt, idx) => (
                           <button 
-                            key={opt}
-                            onClick={() => handleClarificationChoice(opt)}
-                            className="w-full text-left p-3 rounded-lg border border-slate-255 hover:border-indigo-900 hover:bg-slate-50 text-xs font-semibold transition-all"
+                            key={idx}
+                            onClick={() => handleClarificationChoice(CLARIFICATION_TRANSLATIONS.en.wage.step1.opts[idx])}
+                            className="w-full text-left p-3 rounded-lg border border-slate-255 hover:border-indigo-900 hover:bg-slate-50 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-900 focus-visible:outline-hidden"
                           >
                             {opt}
                           </button>
@@ -1005,13 +1392,15 @@ export default function App() {
                   {/* General fallback clarification */}
                   {clarificationTarget.category !== 'Police / Public Authority' && clarificationTarget.category !== 'Employment / Wage' && (
                     <div className="space-y-4">
-                      <h4 className="text-sm font-bold text-slate-700">Could you select the closest sub-topic for your dispute?</h4>
+                      <h4 className="text-sm font-bold text-slate-700">
+                        {CLARIFICATION_TRANSLATIONS[lang].general.step1.q}
+                      </h4>
                       <div className="flex flex-col gap-2">
-                        {["General service delay", "Billing / financial discrepancy", "Unfair treatment / denial of service", "Other specific matter"].map(opt => (
+                        {CLARIFICATION_TRANSLATIONS[lang].general.step1.opts.map((opt, idx) => (
                           <button 
-                            key={opt}
-                            onClick={() => handleClarificationChoice(opt)}
-                            className="w-full text-left p-3 rounded-lg border border-slate-250 hover:border-indigo-900 hover:bg-slate-50 text-xs font-semibold transition-all"
+                            key={idx}
+                            onClick={() => handleClarificationChoice(CLARIFICATION_TRANSLATIONS.en.general.step1.opts[idx])}
+                            className="w-full text-left p-3 rounded-lg border border-slate-250 hover:border-indigo-900 hover:bg-slate-50 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-900 focus-visible:outline-hidden"
                           >
                             {opt}
                           </button>
@@ -1072,34 +1461,114 @@ export default function App() {
                     </div>
                   </div>
 
+                  {rightsLoading && (
+                    <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-xs flex flex-col items-center justify-center space-y-4 py-16 animate-pulse">
+                      <RefreshCw className="h-8 w-8 text-indigo-900 animate-spin" />
+                      <div className="text-center space-y-2">
+                        <h4 className="font-bold text-slate-800 text-sm">
+                          {lang === 'te' ? 'విశ్లేషిస్తోంది...' : lang === 'hi' ? 'विश्लेषण किया जा रहा है...' : "Analyzing..."}
+                        </h4>
+                        <p className="text-xs text-slate-500 max-w-xs leading-relaxed">
+                          {lang === 'te' 
+                            ? 'ధృవీకరించబడిన చట్టపరమైన ఆధారాలను వెతుకుతోంది మరియు కార్యాచరణ ప్రణాళికను సిద్ధం చేస్తోంది...' 
+                            : lang === 'hi' 
+                            ? 'सत्यापित कानूनी स्रोतों की खोज और आपकी कार्य योजना तैयार की जा रही है...' 
+                            : "Finding verified sources, checking legal taxonomy, and preparing your action plan..."}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   {rightsResult && (
                     <div className="space-y-6">
                       
+                      {/* SPEECH SYNTHESIS CONTROLLER BAR */}
+                      <div className="bg-indigo-50 border border-indigo-150 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-xs">
+                        <div className="flex items-center space-x-2">
+                          <Sparkles className="h-5 w-5 text-indigo-900 animate-pulse" />
+                          <div>
+                            <h4 className="text-xs font-black text-indigo-950 uppercase tracking-wider">
+                              {UI_TRANSLATIONS[lang].readAloud}
+                            </h4>
+                            <p className="text-[10px] text-slate-500">
+                              {UI_TRANSLATIONS[lang].readAloudSpeechWarning}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          {speechState === 'stopped' && (
+                            <button
+                              onClick={() => handleReadAloud(rightsResult)}
+                              className="bg-indigo-900 hover:bg-opacity-95 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center space-x-1 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-900"
+                            >
+                              <span>▶ {UI_TRANSLATIONS[lang].readAloud}</span>
+                            </button>
+                          )}
+                          {speechState === 'playing' && (
+                            <button
+                              onClick={handlePauseSpeech}
+                              className="bg-amber-600 hover:bg-opacity-95 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center space-x-1 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-amber-600"
+                            >
+                              <span>⏸ {UI_TRANSLATIONS[lang].pause}</span>
+                            </button>
+                          )}
+                          {speechState === 'paused' && (
+                            <button
+                              onClick={handleResumeSpeech}
+                              className="bg-emerald-600 hover:bg-opacity-95 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center space-x-1 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-600"
+                            >
+                              <span>▶ {UI_TRANSLATIONS[lang].resume}</span>
+                            </button>
+                          )}
+                          {speechState !== 'stopped' && (
+                            <button
+                              onClick={handleStopSpeech}
+                              className="bg-red-650 hover:bg-opacity-95 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center space-x-1 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-650"
+                            >
+                              <span>⏹ {UI_TRANSLATIONS[lang].stop}</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
                       {/* DETECTED UNSUPPORTED / SAFE FALLBACK SCREEN (Section 9) */}
                       {rightsResult.status === 'UNSUPPORTED_FALLBACK' ? (
-                        <div className="space-y-6">
+                        <div className="space-y-6 animate-fadeIn">
                           
                           {/* We understand card */}
-                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                            <span className="text-[10px] font-bold text-red-600 uppercase tracking-widest block mb-1">
-                              ⚠️ WE UNDERSTAND
-                            </span>
-                            <p className="text-sm font-bold text-slate-800 leading-relaxed">
-                              Your message appears to concern: <span className="text-indigo-900 font-black">{rightsResult.category}</span>.
-                            </p>
+                          <div className="bg-amber-50/50 p-6 rounded-2xl border border-amber-200 shadow-xs space-y-4">
+                            <div className="flex items-center space-x-2">
+                              <ShieldAlert className="h-5 w-5 text-amber-600 shrink-0" />
+                              <span className="text-[10px] font-black text-amber-800 uppercase tracking-widest">
+                                {lang === 'te' ? 'మా వద్ద ప్రస్తుతం తగినంత ధృవీకరించబడిన సమాచారం లేదు' : lang === 'hi' ? 'हमारे पास वर्तमान में पर्याप्त सत्यापित जानकारी नहीं है' : "WE DON'T HAVE ENOUGH VERIFIED INFORMATION YET"}
+                              </span>
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-800 leading-relaxed">
+                              {lang === 'te' ? 'మేము వాస్తవాలను整理 చేయడంలో మీకు సహాయపడగలము, కానీ ప్రస్తుతానికి కేసు-నిర్దిష్ట సమాధానం ఇవ్వడానికి తగినంత ధృవీకరించబడిన వనరులు లేవు.' : lang === 'hi' ? 'हम तथ्यों को व्यवस्थित करने में आपकी सहायता कर सकते हैं, लेकिन वर्तमान में हमारे पास मामला-विशिष्ट उत्तर देने के लिए पर्याप्त सत्यापित सामग्री नहीं है।' : "We can help you organize the facts, but we don't currently have enough verified source material to provide a case-specific answer."}
+                            </h3>
+                            <div className="bg-amber-600 text-white font-black px-3.5 py-1.5 rounded-lg text-xs inline-block tracking-wide uppercase shadow-sm">
+                              {lang === 'te' ? 'మేము ఊహించి చెప్పము.' : lang === 'hi' ? 'हम अनुमान नहीं लगाएंगे।' : "We will not guess."}
+                            </div>
                           </div>
 
                           {/* Help checklist & Not verify */}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">WHAT WE CAN HELP WITH</h4>
+                            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-2">
+                              <span className="bg-slate-100 text-slate-700 text-[9px] font-black px-2 py-0.5 rounded-sm uppercase tracking-wide border border-slate-200 inline-block">
+                                🤖 AI GUIDANCE
+                              </span>
+                              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider block">{UI_TRANSLATIONS[lang].safeFallbackHelp}</h4>
                               <p className="text-xs text-slate-600 leading-relaxed">
                                 {rightsResult.response.whatWeCanHelpWith}
                               </p>
                             </div>
 
-                            <div className="bg-slate-100 p-6 rounded-2xl border border-slate-200 shadow-xs">
-                              <h4 className="text-xs font-bold text-red-700 uppercase tracking-wider mb-2">WHAT WE CANNOT VERIFY YET</h4>
+                            <div className="bg-slate-100 p-6 rounded-2xl border border-slate-200 shadow-xs space-y-2">
+                              <span className="bg-red-50 text-red-700 text-[9px] font-black px-2 py-0.5 rounded-sm uppercase tracking-wide border border-red-200 inline-block">
+                                ⚠️ VERIFICATION LIMIT
+                              </span>
+                              <h4 className="text-xs font-bold text-red-700 uppercase tracking-wider block">{UI_TRANSLATIONS[lang].safeFallbackCannotVerify}</h4>
                               <p className="text-xs text-red-800 leading-relaxed font-semibold">
                                 {rightsResult.response.whatWeCannotVerifyYet}
                               </p>
@@ -1107,15 +1576,31 @@ export default function App() {
                           </div>
 
                           {/* What would help bullet checklist */}
-                          <div className="bg-white p-6 rounded-2xl border border-slate-250 shadow-xs">
-                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">WHAT WOULD HELP US RESEARCH</h4>
-                            <ul className="space-y-3">
-                              {rightsResult.response.whatWouldHelp.map((bullet, idx) => (
-                                <li key={idx} className="flex items-start space-x-2 text-xs text-slate-700 font-semibold">
-                                  <span className="h-4 w-4 rounded-full bg-slate-100 text-slate-655 flex items-center justify-center font-bold text-[10px] mt-0.5">•</span>
-                                  <span>{bullet}</span>
-                                </li>
-                              ))}
+                          <div className="bg-white p-6 rounded-2xl border border-slate-250 shadow-xs space-y-4">
+                            <h4 className="text-xs font-bold text-slate-550 uppercase tracking-wider">
+                              {lang === 'te' ? 'మా పరిశోధనకు ఏ వివరాలు సహాయపడతాయి?' : lang === 'hi' ? 'हमारे शोध में क्या मदद करेगा?' : "WHAT WOULD HELP US RESEARCH?"}
+                            </h4>
+                            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-700 font-semibold">
+                              <li className="flex items-center space-x-2">
+                                <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+                                <span>{lang === 'te' ? 'ఖచ్చితంగా ఏమి జరిగింది?' : lang === 'hi' ? 'विशेष रूप से क्या हुआ?' : "What happened?"}</span>
+                              </li>
+                              <li className="flex items-center space-x-2">
+                                <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+                                <span>{lang === 'te' ? 'ఇది ఎక్కడ జరిగింది?' : lang === 'hi' ? 'यह कहाँ हुआ?' : "Where did this happen?"}</span>
+                              </li>
+                              <li className="flex items-center space-x-2">
+                                <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+                                <span>{lang === 'te' ? 'ఇది ఎప్పుడు జరిగింది?' : lang === 'hi' ? 'यह कब हुआ?' : "When did it happen?"}</span>
+                              </li>
+                              <li className="flex items-center space-x-2">
+                                <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+                                <span>{lang === 'te' ? 'ఏ అధికారి పాలుపంచుకున్నారు?' : lang === 'hi' ? 'कौन सा प्राधिकरण शामिल था?' : "Who was involved?"}</span>
+                              </li>
+                              <li className="flex items-center space-x-2">
+                                <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+                                <span>{lang === 'te' ? 'మీ వద్ద ఏ ఆధారాలు ఉన్నాయి?' : lang === 'hi' ? 'आपके पास क्या सबूत हैं?' : "What evidence do you have?"}</span>
+                              </li>
                             </ul>
                           </div>
 
@@ -1128,32 +1613,60 @@ export default function App() {
                         </div>
                       ) : (
                         // STANDARD GRANTED RIGHTS DETAILS
-                        <>
+                        <div className="space-y-6 animate-fadeIn">
                           {/* 1. What we understand */}
-                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                            <span className="text-[10px] font-bold text-indigo-900 uppercase tracking-widest block mb-1">1. WHAT WE UNDERSTAND</span>
+                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <span className="bg-slate-100 text-slate-700 text-[9px] font-black px-2 py-0.5 rounded-sm uppercase tracking-wide border border-slate-200 inline-block">
+                                🤖 AI EXPLANATION
+                              </span>
+                              <span className="text-[10px] font-bold text-indigo-900 uppercase tracking-widest">
+                                1. {UI_TRANSLATIONS[lang].whatWeUnderstand}
+                              </span>
+                            </div>
                             <p className="text-sm font-bold text-slate-800 leading-relaxed">{rightsResult.response.whatWeUnderstand}</p>
                           </div>
 
                           {/* 2. Information that may apply */}
-                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                            <span className="text-[10px] font-bold text-indigo-900 uppercase tracking-widest block mb-2">2. INFORMATION THAT MAY APPLY</span>
+                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <span className="bg-slate-100 text-slate-700 text-[9px] font-black px-2 py-0.5 rounded-sm uppercase tracking-wide border border-slate-200 inline-block">
+                                🤖 AI EXPLANATION
+                              </span>
+                              <span className="text-[10px] font-bold text-indigo-900 uppercase tracking-widest">
+                                2. {UI_TRANSLATIONS[lang].informationMayApply}
+                              </span>
+                            </div>
                             <p className="text-sm text-slate-750 leading-relaxed">{rightsResult.response.informationThatMayApply}</p>
                           </div>
 
                           {/* 3. Why */}
-                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                            <span className="text-[10px] font-bold text-indigo-900 uppercase tracking-widest block mb-2">3. WHY (REASONING & LEGAL GROUNDING)</span>
+                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <span className="bg-slate-100 text-slate-700 text-[9px] font-black px-2 py-0.5 rounded-sm uppercase tracking-wide border border-slate-200 inline-block">
+                                🤖 AI EXPLANATION
+                              </span>
+                              <span className="text-[10px] font-bold text-indigo-900 uppercase tracking-widest">
+                                3. {UI_TRANSLATIONS[lang].whyThisMatters}
+                              </span>
+                            </div>
                             <p className="text-sm text-slate-750 leading-relaxed">{rightsResult.response.why}</p>
                           </div>
 
                           {/* 4. What you may do next */}
-                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                            <span className="text-[10px] font-bold text-indigo-900 uppercase tracking-widest block mb-4">4. WHAT YOU MAY DO NEXT (ACTION PLAN)</span>
+                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                            <div className="flex items-center space-x-2">
+                              <span className="bg-slate-100 text-slate-700 text-[9px] font-black px-2 py-0.5 rounded-sm uppercase tracking-wide border border-slate-200 inline-block">
+                                🤖 AI EXPLANATION
+                              </span>
+                              <span className="text-[10px] font-bold text-indigo-900 uppercase tracking-widest">
+                                4. {UI_TRANSLATIONS[lang].whatYouCanDo}
+                              </span>
+                            </div>
                             <ul className="space-y-3">
                               {rightsResult.response.whatYouMayDoNext.map((step, idx) => (
                                 <li key={idx} className="flex items-start space-x-3 text-sm text-slate-750">
-                                  <span className="h-5 w-5 rounded-full bg-indigo-50 border border-slate-350 text-indigo-900 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">{idx + 1}</span>
+                                  <span className="h-5 w-5 rounded-full bg-indigo-50 border border-slate-300 text-indigo-900 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">{idx + 1}</span>
                                   <span className="leading-relaxed">{step}</span>
                                 </li>
                               ))}
@@ -1161,8 +1674,15 @@ export default function App() {
                           </div>
 
                           {/* 5. Documents that may help */}
-                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                            <span className="text-[10px] font-bold text-indigo-900 uppercase tracking-widest block mb-4">5. DOCUMENTS / EVIDENCE THAT MAY HELP</span>
+                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                            <div className="flex items-center space-x-2">
+                              <span className="bg-slate-100 text-slate-700 text-[9px] font-black px-2 py-0.5 rounded-sm uppercase tracking-wide border border-slate-200 inline-block">
+                                🤖 AI EXPLANATION
+                              </span>
+                              <span className="text-[10px] font-bold text-indigo-900 uppercase tracking-widest">
+                                5. {UI_TRANSLATIONS[lang].evidenceTitle}
+                              </span>
+                            </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               {rightsResult.response.documentsEvidenceThatMayHelp.map((doc, idx) => (
                                 <div key={idx} className="flex items-center space-x-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
@@ -1174,8 +1694,15 @@ export default function App() {
                           </div>
 
                           {/* 6. Limitations */}
-                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                            <span className="text-[10px] font-bold text-indigo-900 uppercase tracking-widest block mb-2">6. IMPORTANT LIMITATIONS & UNCERTAINTIES</span>
+                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <span className="bg-slate-100 text-slate-700 text-[9px] font-black px-2 py-0.5 rounded-sm uppercase tracking-wide border border-slate-200 inline-block">
+                                🤖 AI EXPLANATION
+                              </span>
+                              <span className="text-[10px] font-bold text-indigo-900 uppercase tracking-widest">
+                                6. {UI_TRANSLATIONS[lang].limitations}
+                              </span>
+                            </div>
                             <p className="text-xs text-slate-655 leading-relaxed italic">{rightsResult.response.importantLimitations}</p>
                           </div>
 
@@ -1184,7 +1711,7 @@ export default function App() {
                             <ShieldAlert className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
                             <p className="text-xs leading-relaxed">{rightsResult.response.disclaimer}</p>
                           </div>
-                        </>
+                        </div>
                       )}
 
                     </div>
@@ -1195,12 +1722,14 @@ export default function App() {
                 {/* Grounding Source panel */}
                 <div className="space-y-6">
                   <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                    <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">Supporting Sources</h3>
+                    <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
+                      {rightsResult ? UI_TRANSLATIONS[lang].sourcesTitle : "Supporting Sources"}
+                    </h3>
                     
                     {rightsResult && rightsResult.status === 'UNSUPPORTED_FALLBACK' ? (
                       <div className="text-center py-8">
                         <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto mb-2" />
-                        <h4 className="text-xs font-bold text-slate-750">Fallback Mode Active</h4>
+                        <h4 className="text-xs font-bold text-slate-750 font-black">Fallback Mode Active</h4>
                         <p className="text-[10px] text-slate-400 mt-1">No verified official source documents matched this query in our local database index.</p>
                       </div>
                     ) : (
@@ -1214,16 +1743,21 @@ export default function App() {
                           <div className="space-y-4">
                             {rightsResult.response.sources.map((src, idx) => (
                               <div key={idx} className="border border-slate-200 p-4 rounded-xl space-y-2 hover:border-slate-300 transition-all bg-slate-50/50">
-                                <span className="bg-teal-50 text-teal-650 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border border-teal-100">{src.category}</span>
+                                <div className="flex items-center justify-between">
+                                  <span className="bg-emerald-50 text-emerald-700 text-[9px] font-black px-2 py-0.5 rounded-sm uppercase tracking-wide border border-emerald-200 inline-block">
+                                    ⚖️ VERIFIED OFFICIAL SOURCE
+                                  </span>
+                                  <span className="bg-teal-50 text-teal-650 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border border-teal-100">{src.category}</span>
+                                </div>
                                 <h4 className="text-xs font-bold text-slate-850 leading-snug">{src.title}</h4>
                                 
-                                <blockquote className="border-l-2 border-slate-350 pl-3 my-2 text-[11px] text-slate-600 leading-relaxed italic">
-                                  "{src.content}"
+                                <blockquote className="border-l-2 border-slate-350 pl-3 my-2 text-[11px] text-slate-600 leading-relaxed italic font-sans font-medium text-slate-700 bg-slate-100/50 p-2 rounded-lg">
+                                  {src.content}
                                 </blockquote>
 
                                 <div className="border-t border-slate-100 pt-2 mt-2 flex justify-between items-center text-[10px] text-slate-400">
-                                  <span className="truncate max-w-[150px]">Authority: {src.authority}</span>
-                                  <a href={src.source_url || src.sourceUrl} target="_blank" rel="noreferrer" className="text-teal-650 hover:underline flex items-center space-x-0.5">
+                                  <span className="truncate max-w-[150px] font-semibold">{UI_TRANSLATIONS[lang].authorityLabel}: {src.authority}</span>
+                                  <a href={src.source_url || src.sourceUrl} target="_blank" rel="noreferrer" className="text-teal-650 hover:underline flex items-center space-x-0.5 font-bold">
                                     <span>View Portal</span>
                                     <ExternalLink className="h-2.5 w-2.5" />
                                   </a>

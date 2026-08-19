@@ -21,7 +21,7 @@ const apiController = {
   // 2. Rights Navigator Analyzer
   analyzeRights: async (req, res, next) => {
     try {
-      const { text, sessionId } = req.body;
+      const { text, sessionId, lang = 'en' } = req.body;
       if (text === undefined || text === null) {
         return res.status(400).json({ error: 'Text prompt is required' });
       }
@@ -33,16 +33,71 @@ const apiController = {
       const sources = cleanText === '' ? [] : retrievalService.search(cleanText, 'rights');
 
       if (cleanText === '' || routeResult.confidence === 'LOW' || !sources || sources.length === 0) {
-        const fallbackSession = {
-          id: sessionId || generateId(),
-          type: 'RIGHTS_NAVIGATOR',
-          prompt: text,
-          status: 'UNSUPPORTED_FALLBACK',
-          category: routeResult.category || 'Other Civic Issue',
-          timestamp: new Date().toISOString(),
-          response: {
-            whatWeUnderstand: `Your message appears to concern: ${routeResult.category || 'Other Civic Issue'}.`,
-            unsupported: true,
+        // Localized strings dictionary
+        const fallbackLocalizations = {
+          te: {
+            category: {
+              "Housing / Tenant": "గృహనిర్మాణం / అద్దెదారు",
+              "Employment / Wage": "ఉద్యోగం / వేతనం",
+              "Consumer / Refund": "వినియోగదారుడు / రీఫండ్",
+              "Police / Public Authority": "పోలీస్ / ప్రభుత్వ అధికారి",
+              "Education": "విద్య",
+              "Healthcare / Public Health": "ఆరోగ్య సంరక్షణ / ప్రజారోగ్యం",
+              "Accessibility / Disability": "సౌలభ్యత / వికలాంగులు",
+              "Public Utilities": "ప్రజా సేవలు",
+              "Sanitation / Waste": "శుభ్రత / వ్యర్థాల నిర్వహణ",
+              "Roads / Public Infrastructure": "రోడ్లు / ప్రజా మౌలిక సదుపాయాలు",
+              "Local Government Services": "స్థానిక ప్రభుత్వ సేవలు",
+              "Identity / Public Documents": "గుర్తింపు / ప్రభుత్వ పత్రాలు",
+              "Public Safety": "ప్రజా రక్షణ",
+              "Environmental / Pollution": "పర్యావరణం / కాలుష్యం",
+              "Other Civic Issue": "ఇతర పౌర సమస్య"
+            },
+            whatWeUnderstand: `మీ సందేశం దీనికి సంబంధించినదిగా కనిపిస్తోంది: `,
+            whatWeCanHelpWith: "పరిస్థితిని నిర్వహించడానికి, మీరు ఏ పత్రాలను సేకరించాలో గుర్తించడానికి మరియు మా నాలెడ్జ్ బేస్‌లో అందుబాటులో ఉన్న ధృవీకరించబడిన వనరులను వివరించడానికి మేము మీకు సహాయం చేస్తాము.",
+            whatWeCannotVerifyYet: "కేసు-నిర్దిష్ట సమాధానాన్ని అందించడానికి మా వద్ద ప్రస్తుతం తగినంత ధృవీకరించబడిన మూల సమాచారం లేదు. మేము ఊహించి చెప్పము.",
+            whatWouldHelp: [
+              "ఖచ్చితంగా ఏమి జరిగింది?",
+              "ఇది ఎక్కడ జరిగింది?",
+              "ఇది ఎప్పుడు జరిగింది?",
+              "ఏ అధికారి లేదా విభాగం పాలుపంచుకున్నారు?",
+              "మీ వద్ద పత్రాలు లేదా ఆధారాలు (అద్దె ఒప్పందం, జీతం స్లిప్, రసీదు, ఫోటోలు, వీడియో) ఉన్నాయా?"
+            ],
+            disclaimer: "సివిక్ యాక్షన్ ఇంజిన్ సురక్షిత ఫాల్‌బ్యాక్ మోడ్. ఎలాంటి చట్టపరమైన సలహా ఇవ్వబడదు."
+          },
+          hi: {
+            category: {
+              "Housing / Tenant": "आवास / किरायेदार",
+              "Employment / Wage": "रोजगार / वेतन",
+              "Consumer / Refund": "उपभोक्ता / रिफंड",
+              "Police / Public Authority": "पुलिस / सार्वजनिक प्राधिकरण",
+              "Education": "शिक्षा",
+              "Healthcare / Public Health": "स्वास्थ्य सेवा / सार्वजनिक स्वास्थ्य",
+              "Accessibility / Disability": "सुलभता / विकलांगता",
+              "Public Utilities": "सार्वजनिक उपयोगिताएँ",
+              "Sanitation / Waste": "स्वच्छता / अपशिष्ट",
+              "Roads / Public Infrastructure": "सड़कें / सार्वजनिक बुनियादी ढांचा",
+              "Local Government Services": "स्थानीय सरकारी सेवाएं",
+              "Identity / Public Documents": "पहचान / सार्वजनिक दस्तावेज",
+              "Public Safety": "सार्वजनिक सुरक्षा",
+              "Environmental / Pollution": "पर्यावरण / प्रदूषण",
+              "Other Civic Issue": "अन्य नागरिक मुद्दा"
+            },
+            whatWeUnderstand: `आपका संदेश इससे संबंधित प्रतीत होता है: `,
+            whatWeCanHelpWith: "हम आपको स्थिति को व्यवस्थित करने, उन सूचनाओं की पहचान करने में मदद कर सकते हैं जिन्हें आपको दस्तावेज़ करने की आवश्यकता हो सकती है, और हमारे ज्ञान आधार में उपलब्ध सत्यापित स्रोतों को समझा सकते हैं।",
+            whatWeCannotVerifyYet: "हमारे पास वर्तमान में मामला-विशिष्ट उत्तर प्रदान करने के लिए पर्याप्त सत्यापित स्रोत सामग्री नहीं है। हम अनुमान नहीं लगाएंगे।",
+            whatWouldHelp: [
+              "विशेष रूप से क्या हुआ?",
+              "यह कहाँ हुआ?",
+              "यह कब हुआ?",
+              "कौन सा प्राधिकरण शामिल था?",
+              "क्या आपके पास दस्तावेज या सबूत हैं (किराया समझौता, वेतन पर्ची, रसीद, फोटो, वीडियो)?"
+            ],
+            disclaimer: "सिविक एक्शन इंजन सुरक्षित फॉलबैक मोड। कोई कानूनी सलाह निहित नहीं है।"
+          },
+          en: {
+            category: {},
+            whatWeUnderstand: `Your message appears to concern: `,
             whatWeCanHelpWith: "We can help you organize the situation, identify information you may need to document, and explain verified sources available in our knowledge base.",
             whatWeCannotVerifyYet: "We do not currently have enough verified source material to provide a case-specific answer. We will not guess.",
             whatWouldHelp: [
@@ -55,11 +110,33 @@ const apiController = {
             disclaimer: "Civic Action Engine safe fallback mode. No legal advice is implied."
           }
         };
+
+        const currentLang = fallbackLocalizations[lang] ? lang : 'en';
+        const localizedDict = fallbackLocalizations[currentLang];
+        const rawCategory = routeResult.category || 'Other Civic Issue';
+        const localizedCategory = localizedDict.category[rawCategory] || rawCategory;
+
+        const fallbackSession = {
+          id: sessionId || generateId(),
+          type: 'RIGHTS_NAVIGATOR',
+          prompt: text,
+          status: 'UNSUPPORTED_FALLBACK',
+          category: rawCategory,
+          timestamp: new Date().toISOString(),
+          response: {
+            whatWeUnderstand: `${localizedDict.whatWeUnderstand}${localizedCategory}.`,
+            unsupported: true,
+            whatWeCanHelpWith: localizedDict.whatWeCanHelpWith,
+            whatWeCannotVerifyYet: localizedDict.whatWeCannotVerifyYet,
+            whatWouldHelp: localizedDict.whatWouldHelp,
+            disclaimer: localizedDict.disclaimer
+          }
+        };
         dbHelper.saveSession(fallbackSession);
         return res.json(fallbackSession);
       }
 
-      const analysis = await geminiService.analyzeRights(text);
+      const analysis = await geminiService.analyzeRights(text, lang);
       
       // Save session history
       const session = {
