@@ -5,8 +5,9 @@ const queries = [
   { text: "My landlord has not returned my security deposit", cat: "rights" },
   { text: "PM Yashasvi scholarship scheme for EBC category", cat: "schemes" },
   { text: "road construction fund allocation ward PWD", cat: "rti" },
-  { text: "fill out application details for Income Certificate", cat: "forms" },
-  { text: "unpaid salary wages from employer", cat: "rights" }
+  { text: "fill out application details for Income Certificate", cat: "Revenue Services" },
+  { text: "unpaid salary wages from employer", cat: "rights" },
+  { text: "refusing a refund for a damaged product", cat: "rights" }
 ];
 
 console.log('🧪 Auditing Retrieval Service with 5 Test Queries:\n');

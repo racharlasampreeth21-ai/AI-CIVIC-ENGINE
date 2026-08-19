@@ -59,21 +59,49 @@ const retrievalService = {
       return filteredDocs; // Return all matching category docs if no query string
     }
 
-    const searchTerms = query.toLowerCase().split(/\s+/).filter(t => t.length > 2);
+    const cleanQuery = query.trim().toLowerCase();
+    const searchTerms = cleanQuery.split(/\s+/).filter(t => t.length > 2);
     
-    // Rank documents based on keyword matching count
+    // Rank documents based on exact phrase matches and weighted field word matching
     const rankedDocs = filteredDocs.map(doc => {
       let score = 0;
-      const textToSearch = `${doc.title} ${doc.authority} ${doc.content || ''} ${doc.category} ${JSON.stringify(doc.criteria || '')}`.toLowerCase();
       
+      const docTitle = (doc.title || '').toLowerCase();
+      const docAuthority = (doc.authority || '').toLowerCase();
+      const docContent = (doc.content || '').toLowerCase();
+      const docCategory = (doc.category || '').toLowerCase();
+      const docCriteria = doc.criteria ? JSON.stringify(doc.criteria).toLowerCase() : '';
+      
+      const fullText = `${docTitle} ${docAuthority} ${docContent} ${docCategory} ${docCriteria}`;
+      
+      // 1. Exact phrase matching (weight +5)
+      if (fullText.includes(cleanQuery)) {
+        score += 5;
+      }
+
+      // 2. Individual word matches with word boundaries and specific weights
       searchTerms.forEach(term => {
         const wordRegex = new RegExp(`\\b${term}\\b`, 'i');
-        if (wordRegex.test(textToSearch)) {
+        
+        // Match in Title (+3)
+        if (wordRegex.test(docTitle)) {
+          score += 3;
+        }
+        // Match in Category (+2)
+        if (wordRegex.test(docCategory)) {
+          score += 2;
+        }
+        // Match in Authority (+1.5)
+        if (wordRegex.test(docAuthority)) {
+          score += 1.5;
+        }
+        // Match in Content (+1)
+        if (wordRegex.test(docContent)) {
           score += 1;
-          // Weighted scoring for title matches
-          if (wordRegex.test(doc.title)) {
-            score += 2;
-          }
+        }
+        // Match in Criteria (+1)
+        if (docCriteria && wordRegex.test(docCriteria)) {
+          score += 1;
         }
       });
 

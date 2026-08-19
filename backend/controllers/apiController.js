@@ -63,35 +63,46 @@ const apiController = {
       const scheme = schemes[0];
       const criteria = scheme.criteria;
 
+      // Check for missing fields
+      const isMissingField = 
+        !profile.category || 
+        profile.annualIncome === undefined || profile.annualIncome === null || profile.annualIncome === '' ||
+        !profile.currentClass || 
+        profile.previousMarks === undefined || profile.previousMarks === null || profile.previousMarks === '';
+
       // Evaluation comparisons
       const evaluation = {
         category: {
           label: 'Category Requirement (OBC/EBC/DNT)',
-          satisfied: criteria.category.map(c => c.toLowerCase()).includes((profile.category || '').trim().toLowerCase()),
-          details: `Applicant is in "${profile.category || 'Unknown'}" category. Allowed: ${criteria.category.join(', ')}.`
+          satisfied: !profile.category ? null : criteria.category.map(c => c.toLowerCase()).includes((profile.category || '').trim().toLowerCase()),
+          details: !profile.category ? 'Category detail missing.' : `Applicant is in "${profile.category || 'Unknown'}" category. Allowed: ${criteria.category.join(', ')}.`
         },
         income: {
           label: 'Parental Annual Income Limit',
-          satisfied: Number(profile.annualIncome) <= criteria.max_parental_income_inr,
-          details: `Applicant income is INR ${Number(profile.annualIncome).toLocaleString()}. Limit: <= INR ${criteria.max_parental_income_inr.toLocaleString()}.`
+          satisfied: (profile.annualIncome === undefined || profile.annualIncome === null || profile.annualIncome === '') ? null : (Number(profile.annualIncome) <= criteria.max_parental_income_inr),
+          details: (profile.annualIncome === undefined || profile.annualIncome === null || profile.annualIncome === '') ? 'Income detail missing.' : `Applicant income is INR ${Number(profile.annualIncome).toLocaleString()}. Limit: <= INR ${criteria.max_parental_income_inr.toLocaleString()}.`
         },
         class: {
           label: 'Academic Class Level',
-          satisfied: Number(profile.currentClass) >= criteria.min_class && Number(profile.currentClass) <= criteria.max_class,
-          details: `Applicant is studying in Class ${profile.currentClass || 'Unknown'}. Required: Class ${criteria.min_class} or ${criteria.max_class}.`
+          satisfied: !profile.currentClass ? null : (Number(profile.currentClass) >= criteria.min_class && Number(profile.currentClass) <= criteria.max_class),
+          details: !profile.currentClass ? 'Class level detail missing.' : `Applicant is studying in Class ${profile.currentClass || 'Unknown'}. Required: Class ${criteria.min_class} or ${criteria.max_class}.`
         },
         marks: {
           label: 'Previous Class Academic Performance',
-          satisfied: Number(profile.previousMarks) >= criteria.min_previous_marks_percentage,
-          details: `Applicant scored ${profile.previousMarks || 0}%. Required: >= ${criteria.min_previous_marks_percentage}%.`
+          satisfied: (profile.previousMarks === undefined || profile.previousMarks === null || profile.previousMarks === '') ? null : (Number(profile.previousMarks) >= criteria.min_previous_marks_percentage),
+          details: (profile.previousMarks === undefined || profile.previousMarks === null || profile.previousMarks === '') ? 'Previous grade marks detail missing.' : `Applicant scored ${profile.previousMarks || 0}%. Required: >= ${criteria.min_previous_marks_percentage}%.`
         }
       };
 
       // Calculate final status
-      const allPassed = Object.values(evaluation).every(crit => crit.satisfied);
-      let eligibilityStatus = 'INELIGIBLE';
-      if (allPassed) {
-        eligibilityStatus = 'LIKELY ELIGIBLE';
+      let eligibilityStatus = 'LIKELY NOT ELIGIBLE';
+      if (isMissingField) {
+        eligibilityStatus = 'INSUFFICIENT INFORMATION';
+      } else {
+        const allPassed = Object.values(evaluation).every(crit => crit.satisfied === true);
+        if (allPassed) {
+          eligibilityStatus = 'LIKELY ELIGIBLE';
+        }
       }
 
       // Prepare response payload
@@ -139,10 +150,10 @@ const apiController = {
       // Customize the draft text if name/address provided
       let customizedDraft = result.rtiDraft;
       if (applicantName) {
-        customizedDraft = customizedDraft.replace(/\[Your Name\]/g, applicantName);
+        customizedDraft = customizedDraft.replace(/\[Needs your input: Applicant Name\]/g, applicantName);
       }
       if (applicantAddress) {
-        customizedDraft = customizedDraft.replace(/\[Your Complete Address\]/g, applicantAddress);
+        customizedDraft = customizedDraft.replace(/\[Needs your input: Applicant Complete Address\]/g, applicantAddress);
       }
 
       const response = {
@@ -219,7 +230,7 @@ const apiController = {
   // 6. Conversational Form Filler: Respond to Field
   respondFormFiller: async (req, res, next) => {
     try {
-      const { sessionId, answer } = req.body;
+      const { sessionId, answer, fieldName } = req.body;
       if (!sessionId) {
         return res.status(400).json({ error: 'Session ID is required' });
       }
@@ -229,11 +240,62 @@ const apiController = {
         return res.status(404).json({ error: 'Form session not found' });
       }
 
-      if (session.status === 'COMPLETED') {
-        return res.json({ status: 'COMPLETED', answers: session.answers });
+      const fields = session.fields;
+
+      // Handle specific field editing (Priority 7: inline correction)
+      if (fieldName) {
+        const editField = fields.find(f => f.name === fieldName);
+        if (!editField) {
+          return res.status(400).json({ error: 'Field not found in schema.' });
+        }
+
+        // Validate answer
+        if (editField.validation && editField.validation.pattern) {
+          const regex = new RegExp(editField.validation.pattern);
+          const strAns = String(answer).trim();
+          if (!regex.test(strAns)) {
+            return res.status(400).json({
+              error: 'ValidationError',
+              message: editField.validation.errorMessage || 'Invalid format.'
+            });
+          }
+        }
+
+        session.answers[fieldName] = answer;
+        dbHelper.saveSession(session);
+
+        // Return updated details
+        return res.json({
+          sessionId,
+          status: session.status,
+          formTitle: session.formTitle,
+          answers: session.answers,
+          progressPercent: session.progressPercent,
+          summary: fields.map(f => ({
+            name: f.name,
+            label: f.label,
+            value: session.answers[f.name] || '',
+            status: session.answers[f.name] ? 'VALID' : 'MISSING'
+          }))
+        });
       }
 
-      const fields = session.fields;
+      if (session.status === 'COMPLETED') {
+        return res.json({
+          sessionId,
+          status: 'COMPLETED',
+          formTitle: session.formTitle,
+          answers: session.answers,
+          progressPercent: 100,
+          summary: fields.map(f => ({
+            name: f.name,
+            label: f.label,
+            value: session.answers[f.name],
+            status: 'VALID'
+          }))
+        });
+      }
+
       const currentIdx = session.currentFieldIndex;
       const currentField = fields[currentIdx];
 

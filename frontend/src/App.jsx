@@ -3,8 +3,9 @@ import {
   Scale, Search, FileText, CheckCircle2, ListTodo, Compass, 
   HelpCircle, Send, ArrowRight, ChevronRight, Download, Copy, 
   Plus, AlertTriangle, FileSpreadsheet, History, Sparkles, 
-  ExternalLink, Lock, RefreshCw, ArrowLeft, Check, ShieldAlert
+  ExternalLink, Lock, RefreshCw, ArrowLeft, Check, ShieldAlert, Edit2
 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 
 export default function App() {
   // Navigation State: 'landing' | 'dashboard'
@@ -58,6 +59,12 @@ export default function App() {
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState('');
 
+  // Form Field Inline Edit Overlay State
+  const [editingField, setEditingField] = useState(null); // { name, label, value }
+  const [editInputValue, setEditInputValue] = useState('');
+  const [editError, setEditError] = useState('');
+  const [editLoading, setEditLoading] = useState(false);
+
   // Session history
   const [sessionHistory, setSessionHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -106,6 +113,68 @@ export default function App() {
     setTimeout(() => setCopiedText(false), 2000);
   };
 
+  // PDF Generation Local Utility
+  const downloadAsPdf = (title, content, filename) => {
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      // Draw outer boundary lines
+      doc.setLineWidth(0.5);
+      doc.rect(10, 10, 190, 277);
+      
+      // Top header draft notice watermark
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(190, 80, 80);
+      doc.text("DRAFT - CIVIC ACTION ENGINE PROTOTYPE - REVIEW BEFORE SUBMISSION", 15, 17);
+      
+      // Title header
+      doc.setFontSize(14);
+      doc.setTextColor(20, 30, 90);
+      doc.text(title.toUpperCase(), 15, 27);
+      
+      // Draw divider line under title
+      doc.setLineWidth(0.2);
+      doc.line(15, 31, 195, 31);
+      
+      // Render Content lines in a typewriter style monospace font
+      doc.setFont('Courier', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(60, 60, 60);
+      
+      const splitText = doc.splitTextToSize(content, 178);
+      let y = 40;
+      
+      splitText.forEach(line => {
+        if (y > 270) {
+          doc.addPage();
+          // Draw border on next page
+          doc.setLineWidth(0.5);
+          doc.rect(10, 10, 190, 277);
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(8);
+          doc.setTextColor(190, 80, 80);
+          doc.text("DRAFT - CIVIC ACTION ENGINE PROTOTYPE - REVIEW BEFORE SUBMISSION", 15, 17);
+          doc.setFont('Courier', 'normal');
+          doc.setFontSize(9);
+          doc.setTextColor(60, 60, 60);
+          y = 25;
+        }
+        doc.text(line, 15, y);
+        y += 5; // spacing
+      });
+      
+      doc.save(filename);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      alert('Could not compile PDF locally.');
+    }
+  };
+
   // 1. Unified Router execution
   const handleIntakeSubmit = async (e) => {
     if (e) e.preventDefault();
@@ -124,15 +193,13 @@ export default function App() {
       
       setIntakeLoading(false);
       
-      // Navigate to the respective module based on routing category
       if (data.category === 'RIGHTS_NAVIGATOR') {
         setActiveModule('rights');
         setRightsInput(intakeInput);
         executeRightsAnalysis(intakeInput);
       } else if (data.category === 'SCHEME_ELIGIBILITY') {
         setActiveModule('scheme');
-        setSchemeStep(1); // Jump straight to questionnaire
-        // Populate partial guesses if possible
+        setSchemeStep(1);
       } else if (data.category === 'RTI_DRAFTING') {
         setActiveModule('rti');
         setRtiInput(intakeInput);
@@ -192,7 +259,7 @@ export default function App() {
       const data = await res.json();
       setSchemeResult(data.response);
       setSchemeLoading(false);
-      setSchemeStep(5); // Jump to results step
+      setSchemeStep(5); // Jump to results
       loadSessionHistory();
     } catch (err) {
       console.error(err);
@@ -249,6 +316,7 @@ export default function App() {
       setFormSessionId(data.sessionId);
       setFormCurrentField(data.currentField);
       setFormProgress(data.progressPercent);
+      setFormSummary([]);
       setFormLoading(false);
     } catch (err) {
       console.error(err);
@@ -290,7 +358,6 @@ export default function App() {
       if (data.status === 'COMPLETED') {
         setFormStatus('COMPLETED');
         setFormSummary(data.summary);
-        // Load final application text
         fetchFormFinalDraft(data.sessionId);
       } else {
         setFormCurrentField(data.currentField);
@@ -299,6 +366,45 @@ export default function App() {
       console.error(err);
       setFormLoading(false);
       setFormError('Connection issue submitting reply.');
+    }
+  };
+
+  const handleSaveCorrection = async (e) => {
+    if (e) e.preventDefault();
+    setEditLoading(true);
+    setEditError('');
+
+    try {
+      const res = await fetch('/api/forms/respond', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: formSessionId,
+          fieldName: editingField.name,
+          answer: editInputValue
+        })
+      });
+      
+      const data = await res.json();
+      setEditLoading(false);
+
+      if (!res.ok) {
+        setEditError(data.message || 'Validation failed.');
+        return;
+      }
+
+      setFormAnswers(data.answers);
+      setFormSummary(data.summary);
+      
+      // Update the draft text representation
+      if (session === 'COMPLETED' || formStatus === 'COMPLETED') {
+        fetchFormFinalDraft(formSessionId);
+      }
+      setEditingField(null);
+    } catch (err) {
+      console.error(err);
+      setEditLoading(false);
+      setEditError('Could not sync correction to server.');
     }
   };
 
@@ -319,7 +425,6 @@ export default function App() {
 
   const handleQuickPrompt = (text) => {
     setIntakeInput(text);
-    // If we're not in the dashboard, switch there
     if (currentScreen === 'landing') {
       setCurrentScreen('dashboard');
     }
@@ -329,7 +434,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       
-      {/* GLOBAL BANNER / TOPBAR */}
+      {/* GLOBAL HEADER BAR */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <button 
@@ -565,7 +670,7 @@ export default function App() {
       {currentScreen === 'dashboard' && (
         <div className="flex-1 flex flex-col md:flex-row">
           
-          {/* SIDEBAR NAVIGATION */}
+          {/* SIDEBAR */}
           <aside className="w-full md:w-64 bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800">
             <div className="p-4 border-b border-slate-800">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Engine Modules</span>
@@ -623,7 +728,7 @@ export default function App() {
               </button>
             </nav>
 
-            {/* SESSION HISTORY SECTION */}
+            {/* SESSION LOGS */}
             <div className="p-4 border-t border-slate-800 max-h-60 overflow-y-auto">
               <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
                 <span className="flex items-center space-x-1">
@@ -671,7 +776,7 @@ export default function App() {
           {/* MAIN MODULE CONTENT */}
           <main className="flex-1 p-6 md:p-10 overflow-y-auto">
             
-            {/* INTAKE ROUTER VIEW */}
+            {/* INTAKE ROUTER */}
             {activeModule === 'intake' && (
               <div className="max-w-3xl mx-auto">
                 <div className="text-center mb-8">
@@ -721,7 +826,7 @@ export default function App() {
                   </div>
                 </form>
 
-                {/* SUGGESTED CHEATS */}
+                {/* SUGGESTED TEMPLATES */}
                 <div className="mt-12">
                   <h4 className="text-sm font-bold text-slate-600 mb-4 uppercase tracking-wider">Example Templates for Grading</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -735,7 +840,7 @@ export default function App() {
                     </button>
 
                     <button 
-                      onClick={() => handleQuickPrompt("Am I eligible for this scholarship scheme?")}
+                      onClick={() => handleQuickPrompt("Can I apply for the PM Yashasvi scholarship scheme? I am OBC student with income 1.8 Lakhs.")}
                       className="bg-white p-4 rounded-xl border border-slate-200 text-left hover:border-civic-teal transition-all hover:bg-slate-50"
                     >
                       <span className="font-bold text-xs text-civic-teal block mb-1">Scheme Checker Scenario</span>
@@ -764,7 +869,7 @@ export default function App() {
               </div>
             )}
 
-            {/* RIGHTS NAVIGATOR VIEW */}
+            {/* RIGHTS NAVIGATOR */}
             {activeModule === 'rights' && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
@@ -815,56 +920,57 @@ export default function App() {
                   {rightsResult && (
                     <div className="space-y-6">
                       
-                      {/* What we understand */}
+                      {/* 1. What we understand */}
                       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">FACT SUMMARY</span>
-                        <h4 className="text-md font-bold text-civic-dark">{rightsResult.summary}</h4>
-                        <div className="mt-3 text-xs text-civic-gray flex items-center gap-1 bg-slate-50 p-2 rounded-sm w-fit border border-slate-100">
-                          <span className="font-semibold text-slate-600">Category:</span> {rightsResult.category}
-                        </div>
+                        <span className="text-[10px] font-bold text-civic-indigo uppercase tracking-widest block mb-1">1. WHAT WE UNDERSTAND</span>
+                        <p className="text-sm font-bold text-civic-dark leading-relaxed">{rightsResult.whatWeUnderstand}</p>
                       </div>
 
-                      {/* Explanation */}
+                      {/* 2. Information that may apply */}
                       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">EXPLANATION / INTERPRETATION</span>
-                        <div className="text-sm text-slate-700 leading-relaxed space-y-4">
-                          <p>{rightsResult.explanation}</p>
-                        </div>
-                        {rightsResult.clarificationNeeded && (
-                          <div className="mt-6 bg-slate-50 border-l-4 border-civic-indigo p-4 rounded-r-lg">
-                            <span className="font-bold text-xs text-civic-indigo block mb-1">Recommended Clarifications to verify:</span>
-                            <p className="text-xs text-slate-600 leading-relaxed">{rightsResult.clarificationNeeded}</p>
-                          </div>
-                        )}
+                        <span className="text-[10px] font-bold text-civic-indigo uppercase tracking-widest block mb-2">2. INFORMATION THAT MAY APPLY</span>
+                        <p className="text-sm text-slate-700 leading-relaxed">{rightsResult.informationThatMayApply}</p>
                       </div>
 
-                      {/* Next steps */}
+                      {/* 3. Why */}
                       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-4">RECOMMENDED ACTIONS</span>
+                        <span className="text-[10px] font-bold text-civic-indigo uppercase tracking-widest block mb-2">3. WHY (REASONING & LEGAL GROUNDING)</span>
+                        <p className="text-sm text-slate-700 leading-relaxed">{rightsResult.why}</p>
+                      </div>
+
+                      {/* 4. What you may do next */}
+                      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+                        <span className="text-[10px] font-bold text-civic-indigo uppercase tracking-widest block mb-4">4. WHAT YOU MAY DO NEXT (ACTION PLAN)</span>
                         <ul className="space-y-3">
-                          {rightsResult.nextSteps.map((step, idx) => (
+                          {rightsResult.whatYouMayDoNext.map((step, idx) => (
                             <li key={idx} className="flex items-start space-x-3 text-sm text-slate-700">
-                              <span className="h-5 w-5 rounded-full bg-slate-100 border border-slate-300 text-slate-600 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">{idx + 1}</span>
+                              <span className="h-5 w-5 rounded-full bg-indigo-50 border border-slate-350 text-civic-indigo flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">{idx + 1}</span>
                               <span className="leading-relaxed">{step}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
 
-                      {/* Required documents checklist */}
+                      {/* 5. Documents that may help */}
                       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-4">EVIDENCE Checklist</span>
+                        <span className="text-[10px] font-bold text-civic-indigo uppercase tracking-widest block mb-4">5. DOCUMENTS / EVIDENCE THAT MAY HELP</span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {rightsResult.documentsNeeded.map((doc, idx) => (
+                          {rightsResult.documentsEvidenceThatMayHelp.map((doc, idx) => (
                             <div key={idx} className="flex items-center space-x-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                              <input type="checkbox" className="h-4 w-4 rounded-sm border-slate-300 text-civic-indigo focus:ring-civic-indigo" />
+                              <input type="checkbox" className="h-4 w-4 rounded-sm border-slate-300 text-civic-teal focus:ring-civic-teal" />
                               <span className="text-xs text-slate-700 font-medium">{doc}</span>
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      {/* Safety Alert */}
+                      {/* 6. Limitations */}
+                      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+                        <span className="text-[10px] font-bold text-slate-indigo uppercase tracking-widest block mb-2">6. IMPORTANT LIMITATIONS & UNCERTAINTIES</span>
+                        <p className="text-xs text-slate-650 leading-relaxed italic">{rightsResult.importantLimitations}</p>
+                      </div>
+
+                      {/* Safety Disclaimer */}
                       <div className="bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-xl flex items-start space-x-3">
                         <ShieldAlert className="h-5 w-5 text-civic-amber shrink-0 mt-0.5" />
                         <p className="text-xs leading-relaxed">{rightsResult.disclaimer}</p>
@@ -878,24 +984,28 @@ export default function App() {
                 {/* Grounding Source panel */}
                 <div className="space-y-6">
                   <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                    <h3 className="text-sm font-bold text-civic-dark uppercase tracking-wider mb-4">Supporting Sources</h3>
-                    <p className="text-xs text-civic-gray leading-relaxed mb-4">
-                      The analyzer extracts matching records from the local knowledge base to verify legal regulations.
-                    </p>
+                    <h3 className="text-sm font-bold text-civic-dark uppercase tracking-wider mb-2">Supporting Sources</h3>
+                    <div className="text-[10px] bg-slate-150 p-2 rounded-sm mb-4 border border-slate-200 text-slate-600 flex justify-between">
+                      <span>Source Check Type: Local Knowledge Base</span>
+                      <span className="font-bold text-civic-teal">GROUNDED</span>
+                    </div>
 
                     {rightsResult && rightsResult.sources && rightsResult.sources.length > 0 ? (
                       <div className="space-y-4">
                         {rightsResult.sources.map((src, idx) => (
-                          <div key={idx} className="border border-slate-200 p-4 rounded-xl space-y-2 hover:border-slate-300 transition-all">
-                            <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">{src.category}</span>
+                          <div key={idx} className="border border-slate-200 p-4 rounded-xl space-y-2 hover:border-slate-300 transition-all bg-slate-50/50">
+                            <span className="bg-teal-50 text-civic-teal text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border border-teal-100">{src.category}</span>
                             <h4 className="text-xs font-bold text-slate-800 leading-snug">{src.title}</h4>
-                            <p className="text-[11px] text-slate-600 line-clamp-4 leading-normal italic">
+                            
+                            {/* Distinct Source Excerpt Block */}
+                            <blockquote className="border-l-2 border-slate-300 pl-3 my-2 text-[11px] text-slate-600 leading-relaxed italic">
                               "{src.content}"
-                            </p>
+                            </blockquote>
+
                             <div className="border-t border-slate-100 pt-2 mt-2 flex justify-between items-center text-[10px] text-slate-400">
-                              <span>Auth: {src.authority}</span>
+                              <span className="truncate max-w-[150px]">Authority: {src.authority}</span>
                               <a href={src.source_url} target="_blank" rel="noreferrer" className="text-civic-teal hover:underline flex items-center space-x-0.5">
-                                <span>Source</span>
+                                <span>View Portal</span>
                                 <ExternalLink className="h-2.5 w-2.5" />
                               </a>
                             </div>
@@ -986,10 +1096,9 @@ export default function App() {
                         <button onClick={() => setSchemeStep(1)} className="text-slate-400 text-sm font-semibold hover:text-slate-600">Back</button>
                         <button 
                           onClick={() => setSchemeStep(3)} 
-                          disabled={!schemeProfile.annualIncome}
-                          className="bg-civic-teal text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-xs disabled:opacity-50"
+                          className="bg-civic-teal text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-xs"
                         >
-                          Next Step
+                          Next Step (or skip to evaluate missing)
                         </button>
                       </div>
                     </div>
@@ -1036,7 +1145,7 @@ export default function App() {
                           type="number"
                           value={schemeProfile.previousMarks}
                           onChange={(e) => setSchemeProfile({ ...schemeProfile, previousMarks: e.target.value })}
-                          placeholder="e.g. 78"
+                          placeholder="e.g. 78 (leave blank to check missing info response)"
                           max={100}
                           min={0}
                           className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-civic-teal focus:border-civic-teal text-sm"
@@ -1054,8 +1163,8 @@ export default function App() {
                         <button onClick={() => setSchemeStep(3)} className="text-slate-400 text-sm font-semibold hover:text-slate-600">Back</button>
                         <button 
                           onClick={executeSchemeEligibility} 
-                          disabled={schemeLoading || !schemeProfile.previousMarks}
-                          className="bg-civic-teal text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-xs disabled:opacity-50 flex items-center space-x-1"
+                          disabled={schemeLoading}
+                          className="bg-civic-teal text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-xs flex items-center space-x-1"
                         >
                           {schemeLoading ? (
                             <>
@@ -1076,42 +1185,47 @@ export default function App() {
 
                 {schemeStep === 5 && schemeResult && (
                   <div className="space-y-6">
-                    {/* Score Card */}
-                    <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm text-center space-y-4">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">{schemeResult.schemeTitle}</span>
+                    {/* Eligibility Assessment status card */}
+                    <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-xs text-center space-y-4">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">ELIGIBILITY ASSESSMENT REPORT</span>
                       
                       <div className="flex flex-col items-center">
-                        <div className={`h-16 w-16 rounded-full flex items-center justify-center font-bold text-white mb-2 ${
-                          schemeResult.status === 'LIKELY ELIGIBLE' ? 'bg-emerald-600' : 'bg-red-500'
+                        <div className={`h-16 w-16 rounded-full flex items-center justify-center font-bold text-white mb-2 text-xl ${
+                          schemeResult.status === 'LIKELY ELIGIBLE' ? 'bg-emerald-600' :
+                          schemeResult.status === 'INSUFFICIENT INFORMATION' ? 'bg-amber-500' : 'bg-red-500'
                         }`}>
-                          {schemeResult.status === 'LIKELY ELIGIBLE' ? '✓' : '!'}
+                          {schemeResult.status === 'LIKELY ELIGIBLE' ? '✓' :
+                           schemeResult.status === 'INSUFFICIENT INFORMATION' ? '?' : '✗'}
                         </div>
                         <h2 className={`text-2xl font-black ${
-                          schemeResult.status === 'LIKELY ELIGIBLE' ? 'text-emerald-700' : 'text-red-600'
+                          schemeResult.status === 'LIKELY ELIGIBLE' ? 'text-emerald-700' :
+                          schemeResult.status === 'INSUFFICIENT INFORMATION' ? 'text-amber-600' : 'text-red-650'
                         }`}>
                           {schemeResult.status}
                         </h2>
                       </div>
                       
                       <p className="text-xs text-civic-gray max-w-sm mx-auto leading-relaxed border-t border-slate-100 pt-3">
-                        {schemeResult.disclaimer}
+                        This is an informational assessment generated by parsing database records. Final award requires official vetting via scholarships.gov.in.
                       </p>
                     </div>
 
-                    {/* Criteria Checklists */}
+                    {/* Criterion list */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Criteria Breakdown</h4>
+                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Criterion-by-Criterion Evaluation</h4>
                       <div className="space-y-3">
                         {Object.entries(schemeResult.evaluation).map(([key, item]) => (
-                          <div key={key} className="flex justify-between items-start p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                          <div key={key} className="flex justify-between items-center p-3 bg-slate-50 border border-slate-200 rounded-lg">
                             <div>
                               <span className="text-xs font-bold text-slate-800 block">{item.label}</span>
-                              <span className="text-[11px] text-slate-500 mt-1 block">{item.details}</span>
+                              <span className="text-[11px] text-slate-505 mt-1 block">{item.details}</span>
                             </div>
-                            <span className={`inline-flex px-2 py-0.5 text-[10px] font-bold rounded-sm ${
-                              item.satisfied ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                            <span className={`inline-flex px-3 py-1 text-[11px] font-bold rounded-sm ${
+                              item.satisfied === true ? 'bg-emerald-100 text-emerald-800' :
+                              item.satisfied === null ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
                             }`}>
-                              {item.satisfied ? 'PASSED' : 'FAILED'}
+                              {item.satisfied === true ? '✓ SATISFIED' :
+                               item.satisfied === null ? '? MISSING' : '✗ NOT SATISFIED'}
                             </span>
                           </div>
                         ))}
@@ -1120,7 +1234,7 @@ export default function App() {
 
                     {/* Required Documents */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Potentially Required Evidentiary Documents</h4>
+                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Evidentiary Documents Needed</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {schemeResult.requiredDocuments.map((doc, idx) => (
                           <div key={idx} className="flex items-center space-x-2 text-xs text-slate-700 bg-slate-50 border border-slate-200 p-3 rounded-lg">
@@ -1131,21 +1245,31 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Official source grounding */}
+                    {/* Next step section */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Recommended Next Step</h4>
+                      <p className="text-sm text-slate-700 leading-relaxed font-semibold">
+                        {schemeResult.status === 'LIKELY ELIGIBLE' 
+                          ? "Compile all required documents (specifically caste/marks certificate) and proceed to register on the NSP Portal." 
+                          : "Verify details and correct missing parameters or explore other scholarship schemes matching General/other social criteria."}
+                      </p>
+                    </div>
+
+                    {/* Grounded Source */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex justify-between items-center">
                       <div>
                         <span className="text-[10px] font-bold text-slate-400 block">SOURCE SOURCE</span>
                         <h4 className="text-xs font-bold text-slate-700">{schemeResult.source.title}</h4>
-                        <span className="text-[10px] text-slate-500">{schemeResult.source.authority}</span>
+                        <span className="text-[10px] text-slate-505">{schemeResult.source.authority}</span>
                       </div>
                       <a href={schemeResult.source.source_url} target="_blank" rel="noreferrer" className="text-civic-teal hover:underline text-xs font-bold flex items-center space-x-0.5">
-                        <span>View Portal</span>
+                        <span>View Official Portal</span>
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>
 
                     <div className="flex justify-center">
-                      <button onClick={() => setSchemeStep(0)} className="text-slate-500 text-xs font-semibold hover:underline">Reset Checker</button>
+                      <button onClick={() => setSchemeStep(0)} className="text-slate-500 text-xs font-semibold hover:underline">Reset Assessment Checker</button>
                     </div>
 
                   </div>
@@ -1178,14 +1302,14 @@ export default function App() {
                     </div>
 
                     <div className="border-t border-slate-100 pt-4 space-y-3">
-                      <span className="text-xs font-bold text-slate-500 block uppercase tracking-wider">Applicant Info (Optional placeholders)</span>
+                      <span className="text-xs font-bold text-slate-500 block uppercase tracking-wider">Applicant Info</span>
                       <div>
                         <label className="block text-[11px] font-semibold text-slate-600 mb-1">Your Full Name:</label>
                         <input 
                           type="text"
                           value={applicantName}
                           onChange={(e) => setApplicantName(e.target.value)}
-                          placeholder="e.g. Sampreeth Racharla"
+                          placeholder="Leave blank to trigger Needs your input warnings"
                           className="w-full p-2.5 border border-slate-300 rounded-lg text-xs"
                         />
                       </div>
@@ -1256,12 +1380,24 @@ export default function App() {
                                 </>
                               )}
                             </button>
+
+                            <button 
+                              onClick={() => downloadAsPdf("RTI Application Draft", rtiResult.rtiDraft, "rti_application_draft.pdf")}
+                              className="bg-civic-amber text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 shadow-2xs hover:bg-opacity-95"
+                            >
+                              <Download className="h-3 w-3" />
+                              <span>Download PDF</span>
+                            </button>
                           </div>
                         </div>
 
-                        <div className="p-8 bg-[#fafafa] font-mono text-xs text-slate-800 leading-relaxed border-b border-slate-200 whitespace-pre-wrap max-h-120 overflow-y-auto shadow-inner">
-                          {rtiResult.rtiDraft}
-                        </div>
+                        {/* Editable Text Area for final edits */}
+                        <textarea 
+                          value={rtiResult.rtiDraft}
+                          onChange={(e) => setRtiResult({ ...rtiResult, rtiDraft: e.target.value })}
+                          rows={18}
+                          className="w-full p-8 bg-[#fafafa] font-mono text-xs text-slate-800 leading-relaxed border-b border-slate-200 resize-none focus:outline-hidden shadow-inner focus:bg-white"
+                        ></textarea>
 
                         <div className="p-4 bg-amber-50 text-amber-900 text-xs flex items-start space-x-2">
                           <AlertTriangle className="h-4 w-4 text-civic-amber shrink-0 mt-0.5" />
@@ -1269,7 +1405,7 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* Instructions steps */}
+                      {/* Instructions */}
                       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-4">Submitting Procedures</span>
                         <ul className="space-y-3">
@@ -1295,11 +1431,11 @@ export default function App() {
               </div>
             )}
 
-            {/* CONVERSATIONAL FORM FILLER VIEW */}
+            {/* CONVERSATIONAL FORM FILLER */}
             {activeModule === 'form' && (
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                 
-                {/* Conversational Assistant box */}
+                {/* Conversational Assistant */}
                 <div className="lg:col-span-3 space-y-6">
                   <div className="flex items-center space-x-2 mb-2">
                     <ListTodo className="h-6 w-6 text-purple-600" />
@@ -1324,7 +1460,7 @@ export default function App() {
 
                   {formStatus === 'IN_PROGRESS' && formCurrentField && (
                     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                      {/* Form Header */}
+                      {/* Header */}
                       <div className="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
                         <div>
                           <h3 className="text-sm font-bold">{formCurrentField.label}</h3>
@@ -1339,7 +1475,7 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* Chat dialog body */}
+                      {/* Chat dialog */}
                       <div className="p-6 space-y-6">
                         <div className="flex items-start space-x-3">
                           <div className="h-8 w-8 rounded-full bg-purple-100 border border-purple-300 flex items-center justify-center text-purple-600 font-bold text-xs shrink-0">AI</div>
@@ -1349,21 +1485,6 @@ export default function App() {
                             </p>
                           </div>
                         </div>
-
-                        {/* Answers history bubble */}
-                        {Object.keys(formAnswers).length > 0 && (
-                          <div className="border-t border-slate-100 pt-4">
-                            <span className="text-[10px] font-bold text-slate-400 block mb-2">Previous Answers:</span>
-                            <div className="space-y-1 max-h-32 overflow-y-auto pr-2">
-                              {Object.entries(formAnswers).map(([key, val]) => (
-                                <div key={key} className="text-xs flex justify-between bg-slate-50 p-2 rounded-sm border border-slate-150">
-                                  <span className="text-slate-500 font-semibold">{key}:</span>
-                                  <span className="text-slate-800 font-bold truncate max-w-[150px]">{val}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
 
                         {/* Input form */}
                         <form onSubmit={submitFormAnswer} className="border-t border-slate-100 pt-4 space-y-4">
@@ -1435,14 +1556,24 @@ export default function App() {
 
                   {formStatus === 'COMPLETED' && (
                     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                      <div className="bg-emerald-600 text-white px-6 py-4 flex items-center space-x-2">
-                        <CheckCircle2 className="h-5 w-5" />
-                        <h3 className="font-bold text-sm">Application Data Sheet Generated</h3>
+                      <div className="bg-emerald-600 text-white px-6 py-4 flex justify-between items-center">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle2 className="h-5 w-5" />
+                          <h3 className="font-bold text-sm">Application Sheet Compiled</h3>
+                        </div>
+
+                        <button 
+                          onClick={() => downloadAsPdf("Income Certificate Application Details", formDraftText, "income_certificate_draft.pdf")}
+                          className="bg-white text-emerald-800 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 shadow-2xs hover:bg-slate-50"
+                        >
+                          <Download className="h-3 w-3" />
+                          <span>Download PDF</span>
+                        </button>
                       </div>
 
                       <div className="p-6 space-y-6">
-                        <p className="text-xs text-slate-500 leading-relaxed">
-                          All fields validated successfully. You can copy the generated application details or print/download this sheet to file with your regional office.
+                        <p className="text-xs text-slate-505 leading-relaxed">
+                          All fields validated successfully. You can review the final formatted draft text below.
                         </p>
 
                         <div className="bg-[#fafafa] font-mono text-xs text-slate-800 p-6 rounded-xl border border-slate-200 whitespace-pre-wrap shadow-inner max-h-80 overflow-y-auto">
@@ -1469,9 +1600,9 @@ export default function App() {
                           
                           <button 
                             onClick={startFormSession}
-                            className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-3 rounded-lg text-xs font-bold"
+                            className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-3 rounded-lg text-xs font-bold shadow-2xs"
                           >
-                            Fill Another Application
+                            Reset Form
                           </button>
                         </div>
                       </div>
@@ -1480,10 +1611,13 @@ export default function App() {
 
                 </div>
 
-                {/* Live Fields summary table */}
+                {/* Live Fields summary table (Priority 7) */}
                 <div className="lg:col-span-2 space-y-6">
                   <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                    <h3 className="text-xs font-bold text-civic-dark uppercase tracking-wider mb-4">Application Form Fields</h3>
+                    <h3 className="text-xs font-bold text-civic-dark uppercase tracking-wider mb-2">Application Form Fields</h3>
+                    <p className="text-[10px] text-slate-400 mb-4 leading-normal">
+                      Click the Edit icon on any field below to inline-correct and re-validate values directly in the active session.
+                    </p>
                     
                     {formStatus === 'IDLE' ? (
                       <p className="text-xs text-slate-400 italic py-6 text-center">Start the assistant to populate fields.</p>
@@ -1494,38 +1628,45 @@ export default function App() {
                             <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold">
                               <th className="p-3">Field Label</th>
                               <th className="p-3">Value</th>
-                              <th className="p-3 text-right">Status</th>
+                              <th className="p-3 text-right">Actions</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {formSummary.length > 0 ? (
-                              formSummary.map((field) => (
-                                <tr key={field.name} className="border-b border-slate-100 hover:bg-slate-50/50">
-                                  <td className="p-3 font-medium text-slate-700">{field.label}</td>
-                                  <td className="p-3 text-slate-600 truncate max-w-[120px]">{String(field.value)}</td>
-                                  <td className="p-3 text-right font-bold text-emerald-600">✓ Valid</td>
-                                </tr>
-                              ))
-                            ) : (
-                              // Live state checklist
-                              formCurrentField && (
-                                <>
-                                  {/* Already answered */}
-                                  {Object.entries(formAnswers).map(([k, v]) => (
-                                    <tr key={k} className="border-b border-slate-100">
-                                      <td className="p-3 font-medium text-slate-700">{k}</td>
-                                      <td className="p-3 text-slate-600 truncate max-w-[120px]">{String(v)}</td>
-                                      <td className="p-3 text-right font-bold text-emerald-600">✓ Valid</td>
-                                    </tr>
-                                  ))}
-                                  {/* Current field */}
-                                  <tr className="border-b border-slate-100 bg-purple-50/20 font-bold">
-                                    <td className="p-3 text-purple-700">{formCurrentField.name}</td>
-                                    <td className="p-3 text-slate-400 italic">Waiting...</td>
-                                    <td className="p-3 text-right text-purple-600">● Inputting</td>
-                                  </tr>
-                                </>
-                              )
+                            {/* Summary Rows */}
+                            {(formSummary.length > 0 ? formSummary : 
+                              formCurrentField ? Object.entries(formAnswers).map(([k, v]) => ({
+                                name: k,
+                                label: k,
+                                value: v,
+                                status: 'VALID'
+                              })) : []
+                            ).map((field) => (
+                              <tr key={field.name} className="border-b border-slate-100 hover:bg-slate-50/50">
+                                <td className="p-3 font-medium text-slate-700">{field.label}</td>
+                                <td className="p-3 text-slate-600 truncate max-w-[110px]">{String(field.value)}</td>
+                                <td className="p-3 text-right">
+                                  <button 
+                                    onClick={() => {
+                                      setEditingField(field);
+                                      setEditInputValue(String(field.value));
+                                      setEditError('');
+                                    }}
+                                    className="text-civic-indigo hover:text-opacity-80 p-1 flex items-center space-x-0.5 justify-end w-full font-semibold"
+                                  >
+                                    <Edit2 className="h-3 w-3" />
+                                    <span>Edit</span>
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+
+                            {/* Active field input row */}
+                            {formStatus === 'IN_PROGRESS' && formCurrentField && (
+                              <tr className="border-b border-slate-100 bg-purple-50/20 font-bold">
+                                <td className="p-3 text-purple-700">{formCurrentField.label}</td>
+                                <td className="p-3 text-slate-400 italic">Waiting...</td>
+                                <td className="p-3 text-right text-purple-600">● Active</td>
+                              </tr>
                             )}
                           </tbody>
                         </table>
@@ -1538,6 +1679,56 @@ export default function App() {
             )}
 
           </main>
+        </div>
+      )}
+
+      {/* FIELD CORRECTION EDIT MODAL OVERLAY */}
+      {editingField && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-lg max-w-md w-full p-6 space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-150 pb-3">
+              <h3 className="font-bold text-slate-800 text-sm">Correct Field Value</h3>
+              <button onClick={() => setEditingField(null)} className="text-slate-400 hover:text-slate-600 text-lg font-bold">×</button>
+            </div>
+            
+            <form onSubmit={handleSaveCorrection} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-505 mb-2">
+                  Label: {editingField.label}
+                </label>
+                <input 
+                  type="text"
+                  value={editInputValue}
+                  onChange={(e) => setEditInputValue(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-civic-indigo focus:border-civic-indigo"
+                  required
+                />
+              </div>
+
+              {editError && (
+                <div className="bg-red-50 text-red-700 text-xs p-3 rounded-lg border border-red-200">
+                  {editError}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button 
+                  type="button"
+                  onClick={() => setEditingField(null)}
+                  className="px-4 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  disabled={editLoading}
+                  className="bg-civic-indigo text-white px-4 py-2 rounded-lg text-xs font-bold shadow-xs hover:bg-opacity-95 flex items-center space-x-1"
+                >
+                  {editLoading ? 'Saving...' : 'Save Correction'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

@@ -47,8 +47,8 @@ async function runTests() {
     assert(rightsRes.ok, `Rights endpoint returned status ${rightsRes.status}`);
     const rightsData = await rightsRes.json();
     assert(rightsData.type === 'RIGHTS_NAVIGATOR', 'Session type is RIGHTS_NAVIGATOR');
-    assert(rightsData.response.summary !== '', 'Rights analysis summary is populated');
-    assert(rightsData.response.nextSteps.length > 0, 'Rights analysis returned next steps list');
+    assert(rightsData.response.whatWeUnderstand !== undefined, 'Rights analysis whatWeUnderstand is populated');
+    assert(rightsData.response.whatYouMayDoNext.length > 0, 'Rights analysis returned next steps list');
 
     // 4. Scheme Eligibility
     console.log('\n--- Test 4: Scheme Eligibility ---');
@@ -110,6 +110,21 @@ async function runTests() {
     assert(answerRes.ok, `Form respond returned status ${answerRes.status}`);
     const answerData = await answerRes.json();
     assert(answerData.currentField.name === 'fatherHusbandName', `Advanced to next field: ${answerData.currentField.name} (Expected: fatherHusbandName)`);
+
+    // 7. Form Filler Inline Correction
+    console.log('\n--- Test 7: Form Filler Inline Correction ---');
+    const editRes = await fetch(`${BACKEND_URL}/api/forms/respond`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId,
+        fieldName: 'fullName',
+        answer: 'Sampreeth R'
+      })
+    });
+    assert(editRes.ok, `Form edit returned status ${editRes.status}`);
+    const editData = await editRes.json();
+    assert(editData.answers.fullName === 'Sampreeth R', 'Inline correction updated fullName answer successfully');
 
   } catch (err) {
     console.error('💥 Test execution threw an error:', err);

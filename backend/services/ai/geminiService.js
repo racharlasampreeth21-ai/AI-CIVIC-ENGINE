@@ -61,49 +61,49 @@ const mockService = {
 
   analyzeRights: (text) => {
     const input = text.toLowerCase();
-    // Retrieve tenant source
     const sources = retrievalService.search(text, 'rights');
     
+    // Landlord dispute mock
     if (input.includes('landlord') || input.includes('deposit') || input.includes('rent')) {
       return {
-        summary: "Security deposit dispute with your landlord regarding unpaid return of deposits.",
-        category: "Tenant Rights / Rent Disputes",
-        clarificationNeeded: "1. Did you provide a formal written vacancy notice? 2. Is there a signed tenancy agreement? 3. Has the landlord provided a written list of deductions?",
-        explanation: "Under the Model Tenancy Act guidelines, a landlord must return the advance security deposit within 30 days of the tenant vacating the premises. Deductions are only permitted for actual damage or unpaid dues, not for normal wear and tear.",
-        nextSteps: [
+        whatWeUnderstand: "You vacated your rented room, but the landlord is withholding the refund of your advance security deposit without valid justification.",
+        informationThatMayApply: "Under Chapter IV of the Model Tenancy Act guidelines, advance security deposits for residential properties are capped at a maximum of two months' rent. The landlord is legally required to refund the deposit upon taking over vacant possession.",
+        why: "A landlord may make deductions only for outstanding utility bills, unpaid rent, or actual tenant-caused damage. Deductions for normal wear and tear (like standard paint weathering) are not permitted. If deductions are made without a written itemized list or if the refund is withheld beyond 30 days, the tenant can approach the local Rent Tribunal.",
+        whatYouMayDoNext: [
           "Send a written demand notice requesting the return of the deposit within 15 days.",
-          "Compile evidence including the tenancy agreement, bank transactions, and photos of the vacant room.",
-          "If the landlord refuses, prepare a petition to be filed before the local Rent Authority/Tribunal."
+          "Compile receipts showing deposit payments, tenancy agreements, and pictures of the vacant room.",
+          "File a formal dispute petition before the Rent Authority or Rent Tribunal."
         ],
-        documentsNeeded: [
+        documentsEvidenceThatMayHelp: [
           "Tenancy Agreement",
           "Rent Receipts / Bank statement showing deposit payment",
           "Written communication (emails/messages) with landlord",
           "Vacation Notice & Proof of hand-over"
         ],
+        importantLimitations: "This is a general guide. Tenancy laws vary by state jurisdictions. If your agreement was not registered, local civil courts or mediation centers may apply instead of the specialized Rent Authority.",
         sources: sources.length ? [sources[0]] : [],
         disclaimer: LEGAL_DISCLAIMER,
         mode: "DEMO"
       };
     }
 
-    // Workplace salary mock
+    // Workplace Salary Mock
     return {
-      summary: "Workplace dispute regarding unpaid wages/salary.",
-      category: "Labor & Employment Rights",
-      clarificationNeeded: "1. What was your employment designation? 2. How many months of salary remain unpaid? 3. Do you have a written appointment letter?",
-      explanation: "Under the Payment of Wages Act, wages must be paid in a timely manner (usually by the 7th or 10th of the following month). If payment is withheld, workers can approach the Labour Commissioner's office.",
-      nextSteps: [
-        "Draft a formal request to your employer detailing the exact unpaid wages.",
-        "Gather employment letters, salary slips, and attendance records.",
-        "File a complaint with the regional Labour Commissioner."
+      whatWeUnderstand: "Your wages/salary remain unpaid or delayed by your employer, violating timely payment standards.",
+      informationThatMayApply: "Under the Payment of Wages Act, 1936, employers are obligated to pay all wages in cash, cheque, or bank transfer in a timely manner (by the 7th of the following month for establishments with < 1000 workers).",
+      why: "Section 7 strictly limits authorized deductions. Withholding salary due to arbitrary disputes is illegal. Workers are entitled to receive full wages along with compensation for delayed payments by submitting claims to the regional labour department.",
+      whatYouMayDoNext: [
+        "Send a written salary demand letter to your employer via registered post/email.",
+        "Gather employment details, appointment letters, salary slips, and attendance sheets.",
+        "Submit a formal complaint claim under Section 15 of the Act to the Labour Commissioner."
       ],
-      documentsNeeded: [
+      documentsEvidenceThatMayHelp: [
         "Employment Agreement / Appointment Letter",
         "Salary Slips / Bank statements",
         "Attendance records or emails showing work completed"
       ],
-      sources: [],
+      importantLimitations: "This Act primarily covers employees drawing salary below specified statutory thresholds. Higher-earning executives may need to seek recovery via standard civil suit litigation or arbitration panels.",
+      sources: sources.length ? [sources[0]] : [],
       disclaimer: LEGAL_DISCLAIMER,
       mode: "DEMO"
     };
@@ -115,11 +115,11 @@ const mockService = {
     return {
       clarificationNeeded: "What is the specific municipal ward number, PWD region, or locality name, and what years/period of construction details are you requesting?",
       subject: "Information request under Section 6(1) of the Right to Information Act, 2005 regarding local road construction and fund allocation.",
-      targetAuthority: "Public Information Officer (PIO), Public Works Department (PWD) / Municipal Corporation",
+      targetAuthority: "[Needs your input: Target PIO Office (e.g. Executive Engineer, PWD / Ward Assistant Commissioner)]",
       rtiDraft: `To,
 The Public Information Officer,
-[Office of the Public Works Department / Municipal Corporation],
-[City / District Name]
+[Needs your input: Public Authority Department Office Name],
+[Needs your input: City / District / State]
 
 Subject: Request for Information under Section 6(1) of the RTI Act, 2005.
 
@@ -127,20 +127,20 @@ Sir/Madam,
 
 I, a citizen of India, hereby request the following information regarding the road construction and funds spent in my locality:
 
-1. Please provide details of total budget allocated, sanctioned, and released for road construction, repair, and resurfacing in [SPECIFIC LOCALITY / WARD NUMBER] during the last 3 financial years.
-2. Please provide a copy of the Work Order, Tender Notice, and completion certificate for work done on [SPECIFY ROAD NAME] in the past 24 months.
+1. Please provide details of total budget allocated, sanctioned, and released for road construction, repair, and resurfacing in [Needs your input: Locality Name / Ward Number] during the last 3 financial years.
+2. Please provide a copy of the Work Order, Tender Notice, and completion certificate for work done on [Needs your input: Specific Road Name] in the past 24 months.
 3. What is the name of the contractor/agency selected for this road work, and what is the specified defect liability period?
 4. Please provide a copy of the measurement book entries corresponding to this construction.
 
 Please provide the information in print format. I am enclosing the RTI Application Fee of Rs. 10/- via Postal Order/Demand Draft.
 
 Date: ${new Date().toLocaleDateString()}
-Place: [Your City]
+Place: [Needs your input: Your City]
 
 Applicant:
-Name: [Your Name]
-Address: [Your Complete Address]
-Phone: [Your Contact Number]`,
+Name: [Needs your input: Applicant Name]
+Address: [Needs your input: Applicant Complete Address]
+Phone: [Needs your input: Applicant Contact Number]`,
       instructions: [
         "Buy a Rs. 10 Court Fee Stamp or Postal Order (IPO) payable to the Accounts Officer of the public authority.",
         "Fill in your name and address in the placeholders in the draft above.",
@@ -239,15 +239,16 @@ const geminiService = {
         - Do not pretend to be a lawyer. Use phrasing like "Based on the available information..." or "Consider verifying...".
         - Distinguish FACT, SOURCE, INFERENCE, and RECOMMENDATION.
         - Incorporate the source authority/title in your explanations.
+        - Ensure all key outputs fit the required sections in simple language.
 
         Respond with a valid JSON object matching this schema:
         {
-          "summary": "one sentence summary of the issue",
-          "category": "e.g. Tenant Rights, Consumer Dispute, Labor Dispute",
-          "clarificationNeeded": "2-3 questions to ask the user to clarify details",
-          "explanation": "clear, simple language explanation of what rights apply, grounded in the source",
-          "nextSteps": ["Step 1", "Step 2", "Step 3"],
-          "documentsNeeded": ["Doc 1", "Doc 2"]
+          "whatWeUnderstand": "one sentence summarizing what we understand about the dispute facts",
+          "informationThatMayApply": "simple explanation of what rights or rules may apply to this situation",
+          "why": "detailed reasoning of why they apply or why they are violated, citing source documents",
+          "whatYouMayDoNext": ["Step 1 description", "Step 2 description", "Step 3 description"],
+          "documentsEvidenceThatMayHelp": ["Evidence Document 1", "Evidence Document 2"],
+          "importantLimitations": "clear limitations, state variations, jurisdictional details, and general uncertainties"
         }
         Do not include markdown tags in the output. Return ONLY raw JSON.
       `;
@@ -289,16 +290,16 @@ const geminiService = {
         User Request: "${text}"
 
         Guidelines:
-        - Include applicant details placeholders ([Your Name], [Your Address]).
-        - Identify the likely target Public Authority (like PWD, Municipal Corp).
+        - If the applicant name or address is not supplied, use placeholders matching "[Needs your input: Applicant Name]" and "[Needs your input: Applicant Complete Address]". Do not guess or invent them!
+        - If the department name or city is not supplied, use placeholders matching "[Needs your input: Public Authority Department Office Name]" and "[Needs your input: City/District]".
         - Structure clear, specific, factual questions. Do not ask for opinions.
         - Generate a formal document layout.
 
         Respond with a valid JSON object matching this schema:
         {
-          "clarificationNeeded": "what missing info should the user provide to make the draft complete?",
+          "clarificationNeeded": "what missing details should the user supply to make the draft complete?",
           "subject": "formal subject line of the RTI",
-          "targetAuthority": "suggested PIO office to send to",
+          "targetAuthority": "suggested PIO office or department name",
           "rtiDraft": "the full text of the RTI application in a formal, copyable layout",
           "instructions": ["Step 1: pay Rs 10", "Step 2: send by speed post"]
         }
