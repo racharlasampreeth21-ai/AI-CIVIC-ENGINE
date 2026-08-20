@@ -616,16 +616,17 @@ const geminiService = {
   },
 
   // 2. Rights Navigator analyzer
-  analyzeRights: async (text) => {
+  analyzeRights: async (text, lang = 'en') => {
     const sources = retrievalService.search(text, 'rights');
     const sourceText = sources.map(s => `[Source: ${s.title} (${s.authority})]\n${s.content}`).join('\n\n');
 
     if (!genAI) {
-      return { ...mockService.analyzeRights(text), sources };
+      return { ...mockService.analyzeRights(text, lang), sources };
     }
 
     try {
       const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const targetLangName = lang === 'te' ? 'Telugu' : lang === 'hi' ? 'Hindi' : 'English';
       const prompt = `
         You are the Rights Navigator module of the Civic Action Engine.
         Analyze the citizen's situation. Group your analysis based on the grounded source documents provided below.
@@ -640,6 +641,7 @@ const geminiService = {
         - Distinguish FACT, SOURCE, INFERENCE, and RECOMMENDATION.
         - Incorporate the source authority/title in your explanations.
         - Ensure all key outputs fit the required sections in simple language.
+        - IMPORTANT: You must write all output text values (whatWeUnderstand, informationThatMayApply, why, whatYouMayDoNext, documentsEvidenceThatMayHelp, importantLimitations) in the following language: ${targetLangName}.
 
         Respond with a valid JSON object matching this schema:
         {
@@ -665,7 +667,7 @@ const geminiService = {
       };
     } catch (error) {
       console.error('[Gemini Rights Error] Falling back to mock analysis:', error.message);
-      return { ...mockService.analyzeRights(text), sources };
+      return { ...mockService.analyzeRights(text, lang), sources };
     }
   },
 

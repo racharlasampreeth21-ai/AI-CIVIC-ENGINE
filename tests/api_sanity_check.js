@@ -138,6 +138,22 @@ async function runTestMatrix() {
       expectedCategory: "Other Civic Issue",
       expectedConfidence: "LOW",
       lang: "hi"
+    },
+    {
+      id: 17,
+      name: "Police Brutality Refined (With parenthesis)",
+      query: "Police brutality (Incident Type: Excessive physical force, Location: Inside a police station, Evidence Available: Yes)",
+      expectedModule: "RIGHTS_NAVIGATOR",
+      expectedCategory: "Police / Public Authority",
+      expectedConfidence: "MEDIUM"
+    },
+    {
+      id: 18,
+      name: "Workplace wages Refined (With special characters)",
+      query: "My employer hasn't paid my wages (Issue details: Unpaid wages / salary delay & harassment? [urgent])",
+      expectedModule: "RIGHTS_NAVIGATOR",
+      expectedCategory: "Employment / Wage",
+      expectedConfidence: "HIGH"
     }
   ];
 
@@ -245,9 +261,9 @@ async function runTestMatrix() {
     assert(editRes.ok);
     const editData = await editRes.json();
     assert.strictEqual(editData.answers.fullName, 'Sampreeth R', 'Inline correction updated fullName answer successfully');
-    console.log(`✅ Test 13 PASSED\n`);
+    console.log(`✅ Test 19 PASSED\n`);
   } catch (err) {
-    console.error(`❌ Test 13 FAILED:`, err.message);
+    console.error(`❌ Test 19 FAILED:`, err.message);
     failed = true;
   }
 
@@ -256,7 +272,7 @@ async function runTestMatrix() {
     console.log('❌ SOME TESTS FAILED. CHECK LOGS ABOVE.');
     process.exit(1);
   } else {
-    console.log('🎉 ALL 13 TEST MATRIX CHECKS PASSED SUCCESSFULLY!');
+    console.log(`🎉 ALL ${testCases.length + 1} TEST MATRIX CHECKS PASSED SUCCESSFULLY!`);
     process.exit(0);
   }
 }

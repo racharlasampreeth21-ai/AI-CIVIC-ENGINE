@@ -144,7 +144,7 @@ const UI_TRANSLATIONS = {
     loadMore: "और लोड करें",
     delete: "हटाएं",
     viewBtn: "देखें",
-    demoModeText: "डेमो मोड (స్థానిక నియమ డేటాబేస్ ఉపయోగించబడుతోంది)"
+    demoModeText: "डेमो मोड (स्थानीय नियम डेटाबेस का उपयोग किया जा रहा है)"
   }
 };
 
@@ -623,8 +623,12 @@ export default function App() {
       });
       const data = await res.json();
       
-      // Save full session payload (which contains status: 'UNSUPPORTED_FALLBACK' or standard response)
-      setRightsResult(data);
+      if (!res.ok || data.error) {
+        setRightsError(data.message || 'Error analyzing rights details.');
+        setRightsResult(null);
+      } else {
+        setRightsResult(data);
+      }
       setRightsLoading(false);
       loadSessionHistory();
     } catch (err) {
@@ -646,10 +650,16 @@ export default function App() {
         body: JSON.stringify({ profile: schemeProfile })
       });
       const data = await res.json();
-      setSchemeResult(data.response);
+      
+      if (!res.ok || data.error) {
+        setSchemeError(data.message || 'Error checking scheme eligibility.');
+        setSchemeResult(null);
+      } else {
+        setSchemeResult(data.response);
+        setSchemeStep(5);
+        loadSessionHistory();
+      }
       setSchemeLoading(false);
-      setSchemeStep(5);
-      loadSessionHistory();
     } catch (err) {
       console.error(err);
       setSchemeLoading(false);
@@ -677,7 +687,13 @@ export default function App() {
         })
       });
       const data = await res.json();
-      setRtiResult(data.response);
+      
+      if (!res.ok || data.error) {
+        setRtiError(data.message || 'Error generating the RTI draft.');
+        setRtiResult(null);
+      } else {
+        setRtiResult(data.response);
+      }
       setRtiLoading(false);
       loadSessionHistory();
     } catch (err) {
@@ -702,10 +718,16 @@ export default function App() {
         body: JSON.stringify({ formId: 'form-income-01' })
       });
       const data = await res.json();
-      setFormSessionId(data.sessionId);
-      setFormCurrentField(data.currentField);
-      setFormProgress(data.progressPercent);
-      setFormSummary([]);
+      
+      if (!res.ok || data.error) {
+        setFormError(data.message || 'Failed to initialize form filler session.');
+        setFormStatus('IDLE');
+      } else {
+        setFormSessionId(data.sessionId);
+        setFormCurrentField(data.currentField);
+        setFormProgress(data.progressPercent);
+        setFormSummary([]);
+      }
       setFormLoading(false);
     } catch (err) {
       console.error(err);

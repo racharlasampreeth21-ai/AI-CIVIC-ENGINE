@@ -107,7 +107,8 @@ const retrievalService = {
     }
 
     const cleanQuery = mappedQuery.trim().toLowerCase();
-    const searchTerms = cleanQuery.split(/\s+/).filter(t => t.length > 2);
+    // Split by non-word/non-multilingual-alphanumeric characters to remove regex metacharacters
+    const searchTerms = cleanQuery.split(/[^a-zA-Z0-9\u0C00-\u0C7F\u0900-\u097F]+/).filter(t => t.length > 2);
     
     // Rank documents based on exact phrase matches and weighted field word matching
     const rankedDocs = filteredDocs.map(doc => {
